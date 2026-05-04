@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RentalApp.ViewModels"
+             x:Class="RentalApp.Views.CreateItemPage"
+             Title="{Binding Title}">
+
+    <ContentPage.BindingContext>
+        <!-- BindingContext is usually set via DI, but added here for XAML intellisense -->
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="20">
+
+            <Label Text="Item Information" 
+                   FontSize="24" 
+                   FontAttributes="Bold" />
+
+            <!-- Error Display -->
+            <Frame BackgroundColor="#FFEBEE"
+                   BorderColor="#F44336"
+                   IsVisible="{Binding HasError}"
+                   Padding="10">
+                <Label Text="{Binding ErrorMessage}" TextColor="#D32F2F" />
+            </Frame>
+
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Title" FontAttributes="Bold" />
+                <Entry Text="{Binding Title}" Placeholder="e.g. Cordless Drill" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Description" FontAttributes="Bold" />
+                <Editor Text="{Binding Description}" 
+                        Placeholder="Describe the item condition, inclusions, etc."
+                        HeightRequest="100" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Price Per Day (£)" FontAttributes="Bold" />
+                <Entry Text="{Binding PricePerDay}" 
+                       Keyboard="Numeric" 
+                       Placeholder="0.00" />
+            </VerticalStackLayout>
+
+            <Button Text="List Item" 
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
+                    Margin="0,20,0,0" />
+
+            <Button Text="Cancel" 
+                    Command="{Binding CancelCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{StaticResource Gray600}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" 
+                               IsVisible="{Binding IsBusy}" 
+                               HorizontalOptions="Center" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

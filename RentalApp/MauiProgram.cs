@@ -1,10 +1,14 @@
+/*
+ * @file MauiProgram.cs
+ * @brief Application entry point and service registration
+ */
+
 using Microsoft.Extensions.Logging;
 using RentalApp.Database.Data;
 using RentalApp.Database.Repositories;
 using RentalApp.Services;
 using RentalApp.ViewModels;
 using RentalApp.Views;
-using System.Diagnostics;
 
 namespace RentalApp;
 
@@ -21,38 +25,47 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        // Database and Repositories
         builder.Services.AddDbContext<AppDbContext>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IItemRepository, ItemRepository>();
-        builder.Services.AddTransient<CreateItemViewModel>();
-        builder.Services.AddTransient<CreateItemPage>();
-        builder.Services.AddTransient<ItemsListViewModel>();
+
+        // Services
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
+        builder.Services.AddSingleton<ILocationService, LocationService>();
+
+        // ViewModels
+        builder.Services.AddTransient<MainViewModel>();
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<ItemsListViewModel>();
+        builder.Services.AddTransient<CreateItemViewModel>();
+        builder.Services.AddTransient<NearbyItemsViewModel>();
+
+        // Pages
+        builder.Services.AddTransient<MainPage>();
+        builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<ItemsListPage>();
         builder.Services.AddTransient<CreateItemPage>();
-        builder.Services.AddSingleton<ILocationService, LocationService>();
-        builder.Services.AddSingleton<AppShellViewModel>();
+
         builder.Services.AddSingleton<AppShell>();
-        builder.Services.AddSingleton<App>();
-        builder.Services.AddTransient<NearbyItemsViewModel>();
-        builder.Services.AddTransient<MainViewModel>();
-        builder.Services.AddTransient<MainPage>();
-        builder.Services.AddSingleton<LoginViewModel>();
-        builder.Services.AddTransient<LoginPage>();
-        builder.Services.AddSingleton<RegisterViewModel>();
-        builder.Services.AddTransient<RegisterPage>();
-        builder.Services.AddTransient<UserListViewModel>();
-        builder.Services.AddTransient<UserListPage>();
-        builder.Services.AddTransient<UserDetailPage>();
-        builder.Services.AddTransient<UserDetailViewModel>();
-        builder.Services.AddSingleton<TempViewModel>();
-        builder.Services.AddTransient<TempPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+
+        // Runtime Database Seeding (Optional & Conditional)
+#if DEBUG
+        Task.Run(async () =>
+        {
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await DbInitializer.SeedAsync(context);
+        }).Wait();
+#endif
+
+        return app;
     }
 }

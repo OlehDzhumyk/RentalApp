@@ -74,9 +74,9 @@ public partial class UserDetailViewModel : BaseViewModel
     #region Constructor
 
     public UserDetailViewModel(
-        IUserRepository userRepository,
+        IUserRepository userRepository, 
         IRoleRepository roleRepository,
-        INavigationService navigationService,
+        INavigationService navigationService, 
         IAuthenticationService authService)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -105,7 +105,7 @@ public partial class UserDetailViewModel : BaseViewModel
             DeleteUserCommand.NotifyCanExecuteChanged();
             NavigateBackCommand.NotifyCanExecuteChanged();
         }
-
+        
         // Load user data when UserId is set via query property
         if (e.PropertyName == nameof(UserId))
         {

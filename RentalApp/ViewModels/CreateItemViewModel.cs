@@ -15,7 +15,7 @@ namespace RentalApp.ViewModels;
 
 /// <summary>
 /// Handles the logic for the "Create Item" screen.
-/// Collects user input and persists new items via IItemRepository.
+/// Uses partial properties with [ObservableProperty] for boilerplate-free MVVM.
 /// </summary>
 public partial class CreateItemViewModel : BaseViewModel
 {
@@ -24,7 +24,7 @@ public partial class CreateItemViewModel : BaseViewModel
     private readonly INavigationService _navigationService;
 
     [ObservableProperty]
-    public partial string Title { get; set; } = string.Empty;
+    public partial string ItemTitle { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial string Description { get; set; } = string.Empty;
@@ -32,9 +32,6 @@ public partial class CreateItemViewModel : BaseViewModel
     [ObservableProperty]
     public partial decimal PricePerDay { get; set; }
 
-    /// <summary>
-    /// Initializes a new instance of the CreateItemViewModel.
-    /// </summary>
     public CreateItemViewModel(
         IItemRepository itemRepository,
         IAuthenticationService authService,
@@ -44,16 +41,13 @@ public partial class CreateItemViewModel : BaseViewModel
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
 
-        base.Title = "List New Item";
+        Title = "List New Item"; // Page title from BaseViewModel
     }
 
-    /// <summary>
-    /// Validates input and saves the new item to the database.
-    /// </summary>
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (string.IsNullOrWhiteSpace(Title) || PricePerDay <= 0)
+        if (string.IsNullOrWhiteSpace(ItemTitle) || PricePerDay <= 0)
         {
             SetError("Please provide a valid title and price.");
             return;
@@ -71,7 +65,7 @@ public partial class CreateItemViewModel : BaseViewModel
         {
             var newItem = new Item
             {
-                Title = Title.Trim(),
+                Title = ItemTitle.Trim(),
                 Description = Description.Trim(),
                 PricePerDay = PricePerDay,
                 OwnerId = currentUser.Id,

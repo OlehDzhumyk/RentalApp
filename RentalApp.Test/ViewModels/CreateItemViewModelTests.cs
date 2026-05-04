@@ -33,7 +33,6 @@ public class CreateItemViewModelTests
         // Mock current user to provide an OwnerId for the item
         _authServiceMock.Setup(a => a.CurrentUser).Returns(new User { Id = 1 });
 
-        // RED STAGE: CreateItemViewModel does not exist yet, so this won't compile.
         _viewModel = new CreateItemViewModel(
             _itemRepositoryMock.Object,
             _authServiceMock.Object,
@@ -46,8 +45,8 @@ public class CreateItemViewModelTests
     [Fact]
     public async Task SaveCommand_ShouldAddItemAndNavigateBack_WhenDataIsValid()
     {
-        // Arrange
-        _viewModel.Title = "Test Item";
+        // Arrange - Using ItemTitle to match the refactored ViewModel
+        _viewModel.ItemTitle = "Test Item";
         _viewModel.Description = "Description";
         _viewModel.PricePerDay = 10.0m;
 

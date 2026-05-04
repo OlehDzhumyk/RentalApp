@@ -1,9 +1,10 @@
 using Microsoft.Extensions.Logging;
+using RentalApp.Database.Data;
+using RentalApp.Database.Repositories;
+using RentalApp.Services;
 using RentalApp.ViewModels;
 using RentalApp.Views;
 using System.Diagnostics;
-using RentalApp.Services;
-using RentalApp.Database.Data;
 
 namespace RentalApp;
 
@@ -21,7 +22,7 @@ public static class MauiProgram
             });
 
         builder.Services.AddDbContext<AppDbContext>();
-
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
 

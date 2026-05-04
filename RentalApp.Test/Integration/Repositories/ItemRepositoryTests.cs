@@ -3,10 +3,10 @@
  * @brief Integration tests for IItemRepository using real spatial data from Edinburgh
  */
 
+using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite.Geometries;
 using RentalApp.Database.Models;
 using RentalApp.Database.Repositories;
-
 namespace RentalApp.Test.Integration.Repositories;
 
 [Collection("Database collection")]

@@ -6,6 +6,7 @@
  */
 
 using RentalApp.Database.Repositories;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RentalApp.Test.Integration.Repositories;
 

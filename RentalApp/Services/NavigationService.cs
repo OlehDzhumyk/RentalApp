@@ -1,5 +1,7 @@
 namespace RentalApp.Services;
 
+using Microsoft.Maui.ApplicationModel;
+
 public class NavigationService : INavigationService
 {
     public async Task NavigateToAsync(string route)

@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RentalApp.Database.Data;
 using RentalApp.Database.Repositories;
+using Microsoft.Extensions.DependencyInjection;
+
 
 namespace RentalApp.Test.Integration;
 

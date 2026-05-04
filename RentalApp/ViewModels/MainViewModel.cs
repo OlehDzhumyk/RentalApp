@@ -83,7 +83,7 @@ public partial class MainViewModel : BaseViewModel
         if (result)
         {
             await _authService.LogoutAsync();
-            await _navigationService.NavigateToAsync("LoginPage");
+            await _navigationService.NavigateToAsync("///LoginPage");
         }
     }
 
@@ -91,6 +91,15 @@ public partial class MainViewModel : BaseViewModel
     private async Task NavigateToItemsAsync()
     {
         await _navigationService.NavigateToAsync(nameof(ItemsListPage));
+    }
+
+    /// <summary>
+    /// Navigates to the spatial search screen to find items nearby.
+    /// </summary>
+    [RelayCommand]
+    private async Task NavigateToNearbyItemsAsync()
+    {
+        await _navigationService.NavigateToAsync(nameof(NearbyItemsPage));
     }
 
     [RelayCommand]

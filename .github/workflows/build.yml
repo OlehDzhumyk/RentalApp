@@ -1,5 +1,5 @@
 # @file build.yml
-# @brief Optimized CI/CD pipeline with separated test suites and coverage reporting
+# @brief Optimized CI/CD pipeline with dummy configuration generation and split testing
 # @author RentalApp Development Team
 # @date 2026
 
@@ -24,7 +24,6 @@ jobs:
         env:
           POSTGRES_USER: app_user
           POSTGRES_PASSWORD: app_password
-          # Match the DB name used in your appsettings.Test.json
           POSTGRES_DB: RentalApp_Test
         ports:
           - 5432:5432
@@ -46,6 +45,15 @@ jobs:
       - name: Install MAUI Workloads
         run: dotnet workload install maui-android
 
+      - name: Create dummy appsettings.json
+        run: |
+          mkdir -p RentalApp.Database
+          echo '{
+            "ConnectionStrings": {
+              "DevelopmentConnection": "Host=localhost;Port=5432;Database=RentalApp_Test;Username=app_user;Password=app_password"
+            }
+          }' > ./RentalApp.Database/appsettings.json
+
       - name: Restore dependencies
         run: dotnet restore ./RentalApp.sln -p:TargetFrameworks=net10.0
 
@@ -53,7 +61,6 @@ jobs:
         run: dotnet build ./RentalApp.sln --configuration Release --no-restore -p:TargetFrameworks=net10.0
 
       - name: Run Unit Tests
-        # Run only tests in the Unit namespace. Fast feedback, no DB required.
         run: >
           dotnet test ./RentalApp.Test/RentalApp.Test.csproj 
           --configuration Release 
@@ -63,7 +70,6 @@ jobs:
           --logger:"console;verbosity=normal"
 
       - name: Run Integration Tests
-        # Run only tests in the Integration namespace. Requires PostGIS service.
         run: >
           dotnet test ./RentalApp.Test/RentalApp.Test.csproj 
           --configuration Release 

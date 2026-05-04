@@ -1,0 +1,17 @@
+# @file .editorconfig
+# @brief Code style configuration for RentalApp
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+
+[*.cs]
+# C# Specific rules
+dotnet_diagnostic.CA1822.severity = suggestion
+csharp_style_expression_bodied_methods = true:suggestion
+csharp_style_expression_bodied_constructors = true:suggestion

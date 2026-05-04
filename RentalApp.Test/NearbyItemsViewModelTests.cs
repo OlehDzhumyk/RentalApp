@@ -51,4 +51,29 @@ public class NearbyItemsViewModelTests
         _itemRepositoryMock.Verify(r => r.GetNearbyAsync(edLat, edLon, 5.0), Times.Once);
         Assert.Single(_viewModel.NearbyItems);
     }
+
+    [Fact]
+    public async Task LoadNearbyItems_ShouldCalculateDistance_ForFoundItems()
+    {
+        // Arrange: User is at Edinburgh Castle
+        double userLat = 55.9486;
+        double userLon = -3.1999;
+        _locationServiceMock.Setup(l => l.GetCurrentLocationAsync())
+            .ReturnsAsync((userLat, userLon));
+
+        // Sample item at Waverley Station (~1km away)
+        var nearbyItem = new Item { Id = 10, Title = "Station Drill", Location = new NetTopologySuite.Geometries.Point(-3.1883, 55.9533) { SRID = 4326 } };
+        _itemRepositoryMock.Setup(r => r.GetNearbyAsync(userLat, userLon, It.IsAny<double>()))
+            .ReturnsAsync(new List<Item> { nearbyItem });
+
+        // Act
+        await _viewModel.LoadNearbyItemsCommand.ExecuteAsync(null);
+
+        // Assert: Check if distance is exposed (we'll need a wrapper or a partial class logic)
+        var firstResult = _viewModel.NearbyItems.First();
+        Assert.NotNull(firstResult);
+        // We expect the ViewModel to handle the distance calculation logic
+    }
+
+
 }

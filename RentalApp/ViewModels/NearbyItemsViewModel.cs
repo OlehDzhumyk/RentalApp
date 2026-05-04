@@ -1,6 +1,6 @@
 ﻿/*
  * @file NearbyItemsViewModel.cs
- * @brief ViewModel for searching items based on user location
+ * @brief Enhanced ViewModel with distance calculation metrics
  * @author RentalApp Development Team
  * @date 2026
  */
@@ -11,67 +11,75 @@ using RentalApp.Database.Models;
 using RentalApp.Database.Repositories;
 using RentalApp.Services;
 using System.Collections.ObjectModel;
+using NetTopologySuite.Geometries;
+using Point = NetTopologySuite.Geometries.Point;
 
 namespace RentalApp.ViewModels;
 
-/// <summary>
-/// Manages the discovery of items near the user's current physical location.
-/// Integrates GPS services with spatial database queries.
-/// </summary>
 public partial class NearbyItemsViewModel : BaseViewModel
 {
     private readonly IItemRepository _itemRepository;
     private readonly ILocationService _locationService;
 
     [ObservableProperty]
-    public partial ObservableCollection<Item> NearbyItems { get; set; } = new();
-
-    [ObservableProperty]
-    public partial double SearchRadius { get; set; } = 5.0; // Default 5km
+    public partial ObservableCollection<ItemDisplayWrapper> NearbyItems { get; set; } = new();
 
     public NearbyItemsViewModel(IItemRepository itemRepository, ILocationService locationService)
     {
-        _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
-        _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));
-
-        Title = "Find Near Me";
+        _itemRepository = itemRepository;
+        _locationService = locationService;
+        Title = "Items Near Me";
     }
 
-    /// <summary>
-    /// Retrieves the current location and searches for items within the defined radius.
-    /// </summary>
     [RelayCommand]
     private async Task LoadNearbyItemsAsync()
     {
         if (IsBusy) return;
-
         IsBusy = true;
-        ClearError();
 
         try
         {
             var location = await _locationService.GetCurrentLocationAsync();
-
             if (location == null)
             {
-                SetError("Could not retrieve your location. Please check GPS settings.");
+                SetError("GPS location unavailable.");
                 return;
             }
 
-            var result = await _itemRepository.GetNearbyAsync(
-                location.Value.Latitude,
-                location.Value.Longitude,
-                SearchRadius);
+            var items = await _itemRepository.GetNearbyAsync(location.Value.Latitude, location.Value.Longitude, 10.0);
 
-            NearbyItems = new ObservableCollection<Item>(result);
+            var userPoint = new Point(location.Value.Longitude, location.Value.Latitude) { SRID = 4326 };
+
+            var wrappedItems = items.Select(item => new ItemDisplayWrapper(item, userPoint));
+            NearbyItems = new ObservableCollection<ItemDisplayWrapper>(wrappedItems);
         }
         catch (Exception ex)
         {
-            SetError($"Error searching items: {ex.Message}");
+            SetError($"Search failed: {ex.Message}");
         }
-        finally
+        finally { IsBusy = false; }
+    }
+}
+
+/// <summary>
+/// Wrapper to include distance metrics without modifying the core Item entity.
+/// </summary>
+public class ItemDisplayWrapper
+{
+    public Item Item { get; }
+    public double DistanceKm { get; }
+    public string FormattedDistance => $"{DistanceKm:F1} km away";
+
+    public ItemDisplayWrapper(Item item, Point userLocation)
+    {
+        Item = item;
+        if (item.Location != null)
         {
-            IsBusy = false;
+            // Haversine or simple NTS distance (PostGIS/NTS handles this in meters usually)
+            // For SRID 4326, distance is in degrees, so we use a coordinate calculator or 
+            // assume the repository already sorted/filtered them.
+            // For UI, we'll use a simple approximation for now:
+            DistanceKm = item.Location.Distance(userLocation) * 111.1; // Very rough degree-to-km conversion
         }
     }
 }

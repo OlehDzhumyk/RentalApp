@@ -51,6 +51,7 @@ public static class MauiProgram
         builder.Services.AddTransient<RegisterPage>();
         builder.Services.AddTransient<ItemsListPage>();
         builder.Services.AddTransient<CreateItemPage>();
+        builder.Services.AddTransient<NearbyItemsPage>();
 
         builder.Services.AddSingleton<AppShellViewModel>();
         builder.Services.AddSingleton<AppShell>();

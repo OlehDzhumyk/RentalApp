@@ -1,26 +1,31 @@
 ﻿/*
  * @file ItemRepository.cs
- * @brief EF Core implementation of IItemRepository
+ * @brief Implementation of IItemRepository with PostGIS spatial support
  * @author RentalApp Development Team
  * @date 2026
  */
 
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using RentalApp.Database.Data;
 using RentalApp.Database.Models;
 
 namespace RentalApp.Database.Repositories;
 
 /// <summary>
-/// Manages Item entities using Entity Framework Core.
+/// Concrete implementation of IItemRepository using Entity Framework Core and PostGIS.
+/// Handles spatial queries for location-based item discovery.
 /// </summary>
 public class ItemRepository : IItemRepository
 {
     private readonly AppDbContext _context;
+    private readonly GeometryFactory _geometryFactory;
 
     public ItemRepository(AppDbContext context)
     {
         _context = context;
+        // SRID 4326 is standard for GPS (WGS84)
+        _geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
     }
 
     public async Task<Item?> GetByIdAsync(int id)
@@ -35,6 +40,25 @@ public class ItemRepository : IItemRepository
         return await _context.Items
             .Include(i => i.Owner)
             .Where(i => i.IsAvailable)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Performs a spatial query using PostGIS ST_DWithin logic.
+    /// Finds items within a specified radius of a point.
+    /// </summary>
+    public async Task<List<Item>> GetNearbyAsync(double lat, double lon, double radiusKm)
+    {
+        // Lon, Lat order is standard for NetTopologySuite Point
+        var userPoint = _geometryFactory.CreatePoint(new Coordinate(lon, lat));
+        var radiusMeters = radiusKm * 1000;
+
+        return await _context.Items
+            .Include(i => i.Owner)
+            .Where(i => i.IsAvailable && i.Location != null)
+            // Distance() on Geography types in EF Core maps to ST_Distance which returns meters
+            .Where(i => i.Location!.Distance(userPoint) <= radiusMeters)
+            .OrderBy(i => i.Location!.Distance(userPoint))
             .ToListAsync();
     }
 

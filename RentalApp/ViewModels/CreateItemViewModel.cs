@@ -1,6 +1,6 @@
 ﻿/*
  * @file CreateItemViewModel.cs
- * @brief ViewModel for creating new rental items
+ * @brief ViewModel for creating items with automatic GPS tagging
  * @author RentalApp Development Team
  * @date 2026
  */
@@ -10,18 +10,16 @@ using CommunityToolkit.Mvvm.Input;
 using RentalApp.Database.Models;
 using RentalApp.Database.Repositories;
 using RentalApp.Services;
+using Point = NetTopologySuite.Geometries.Point;
 
 namespace RentalApp.ViewModels;
 
-/// <summary>
-/// Handles the logic for the "Create Item" screen.
-/// Uses partial properties with [ObservableProperty] for boilerplate-free MVVM.
-/// </summary>
 public partial class CreateItemViewModel : BaseViewModel
 {
     private readonly IItemRepository _itemRepository;
     private readonly IAuthenticationService _authService;
     private readonly INavigationService _navigationService;
+    private readonly ILocationService _locationService; // Додано
 
     [ObservableProperty]
     public partial string ItemTitle { get; set; } = string.Empty;
@@ -32,16 +30,24 @@ public partial class CreateItemViewModel : BaseViewModel
     [ObservableProperty]
     public partial decimal PricePerDay { get; set; }
 
+    /// <summary>
+    /// Toggle to decide if we should attach current GPS coordinates to the item.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool UseCurrentLocation { get; set; } = true;
+
     public CreateItemViewModel(
         IItemRepository itemRepository,
         IAuthenticationService authService,
-        INavigationService navigationService)
+        INavigationService navigationService,
+        ILocationService locationService) // Додано
     {
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+        _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));
 
-        Title = "List New Item"; // Page title from BaseViewModel
+        Title = "List New Item";
     }
 
     [RelayCommand]
@@ -63,6 +69,18 @@ public partial class CreateItemViewModel : BaseViewModel
         IsBusy = true;
         try
         {
+            Point? itemLocation = null;
+
+            if (UseCurrentLocation)
+            {
+                var coords = await _locationService.GetCurrentLocationAsync();
+                if (coords != null)
+                {
+                    // NTS Point: (X = Longitude, Y = Latitude)
+                    itemLocation = new Point(coords.Value.Longitude, coords.Value.Latitude) { SRID = 4326 };
+                }
+            }
+
             var newItem = new Item
             {
                 Title = ItemTitle.Trim(),
@@ -70,7 +88,8 @@ public partial class CreateItemViewModel : BaseViewModel
                 PricePerDay = PricePerDay,
                 OwnerId = currentUser.Id,
                 CreatedAt = DateTime.UtcNow,
-                IsAvailable = true
+                IsAvailable = true,
+                Location = itemLocation // Тепер річ має координати!
             };
 
             await _itemRepository.AddAsync(newItem);

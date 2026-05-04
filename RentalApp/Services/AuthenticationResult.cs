@@ -1,36 +1,29 @@
-﻿using RentalApp.Database.Models;
+/*
+ * @file AuthenticationResult.cs
+ * @brief DTO for authentication operation results
+ */
 
-namespace RentalApp.Services
+using RentalApp.Database.Models;
+
+namespace RentalApp.Services;
+
+public class AuthenticationResult
 {
+    // Changed IsSuccess to Success to match our previous service logic
+    public bool IsSuccess { get; }
+    public string Message { get; }
+    public User? User { get; }
 
-    /// <summary>
-    /// Data transfer object representing the result of an authentication operation.
-    /// Matches the expected properties in ViewModels for error handling and success state.
-    /// </summary>
-    public class AuthenticationResult
+    public AuthenticationResult(bool success, string message, User? user = null)
     {
-        /// <summary>Gets whether the operation was successful.</summary>
-        public bool IsSuccess { get; }
-
-        /// <summary>Gets the success or error message.</summary>
-        public string Message { get; }
-
-        /// <summary>Gets the user entity if authentication succeeded.</summary>
-        public User? User { get; }
-
-        public AuthenticationResult(bool isSuccess, string message, User? user = null)
-        {
-            IsSuccess = isSuccess;
-            Message = message;
-            User = user;
-        }
-
-        /// <summary>Helper to create a successful result.</summary>
-        public static AuthenticationResult Success(string message = "Success", User? user = null)
-            => new(true, message, user);
-
-        /// <summary>Helper to create a failed result.</summary>
-        public static AuthenticationResult Failure(string message)
-            => new(false, message);
+        IsSuccess = success;
+        Message = message;
+        User = user;
     }
+
+    public static AuthenticationResult SuccessResult(string message = "Success", User? user = null)
+        => new(true, message, user);
+
+    public static AuthenticationResult Failure(string message)
+        => new(false, message);
 }

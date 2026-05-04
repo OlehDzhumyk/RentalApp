@@ -52,7 +52,7 @@ public class RentalService : IRentalService
             StartDate = start,
             EndDate = end,
             Status = "Requested",
-            // Logic: Duration in days * daily rate
+            // Logic: Duration in days * daily rate (ensuring decimal precision)
             TotalPrice = (decimal)(end - start).TotalDays * item.PricePerDay
         };
 

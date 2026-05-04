@@ -1,3 +1,8 @@
+# @file build.yml
+# @brief CI/CD pipeline for building and testing the RentalApp
+# @author RentalApp Development Team
+# @date 2026
+
 name: Build & Test
 
 on:
@@ -37,13 +42,25 @@ jobs:
       - name: Install MAUI Android Workload
         run: dotnet workload install maui-android
 
+      - name: Create dummy appsettings.json
+        run: |
+          mkdir -p RentalApp.Database
+          echo '{
+            "ConnectionStrings": {
+              "DevelopmentConnection": "Host=localhost;Database=appdb;Username=app_user;Password=app_password"
+            }
+          }' > ./RentalApp.Database/appsettings.json
+
       - name: Restore dependencies
+        # Обмежуємо відновлення тільки до net10.0, щоб уникнути помилок з Apple SDK на Linux.
         run: dotnet restore ./RentalApp.sln -p:TargetFrameworks=net10.0
 
       - name: Build
+        # Збираємо рішення в режимі Release для цільової платформи net10.0.
         run: dotnet build ./RentalApp.sln --configuration Release --no-restore -p:TargetFrameworks=net10.0
 
       - name: Run tests
+        # Запускаємо xUnit тести та збираємо дані про покриття коду.
         run: dotnet test ./RentalApp.Test/RentalApp.Test.csproj --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
 
       - name: Upload coverage reports

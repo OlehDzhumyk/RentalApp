@@ -55,8 +55,8 @@ public class ItemRepository : IItemRepository
         return await _context.Items
             .Include(i => i.Owner)
             .Where(i => i.IsAvailable && i.Location != null)
-            .Where(i => i.Location.IsWithinDistance(userPoint, radiusMeters))
-            .OrderBy(i => i.Location.Distance(userPoint))
+            .Where(i => i.Location!.IsWithinDistance(userPoint, radiusMeters))
+            .OrderBy(i => i.Location!.Distance(userPoint))
             .ToListAsync();
     }
 

@@ -4,9 +4,6 @@ using RentalApp.Database.Models;
 
 namespace RentalApp.Database.Repositories;
 
-/// <summary>
-/// Concrete implementation of IUserRepository using Entity Framework Core.
-/// </summary>
 public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;
@@ -34,11 +31,17 @@ public class UserRepository : IUserRepository
 
     public async Task<List<User>> GetAllActiveAsync()
     {
+        return await _context.Users.Where(u => u.IsActive).ToListAsync();
+    }
+
+    public async Task<List<User>> GetAllWithRolesAsync()
+    {
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .Where(u => u.IsActive)
             .OrderBy(u => u.FirstName)
+            .ThenBy(u => u.LastName)
             .ToListAsync();
     }
 
@@ -57,5 +60,24 @@ public class UserRepository : IUserRepository
     public async Task<bool> ExistsAsync(string email)
     {
         return await _context.Users.AnyAsync(u => u.Email == email);
+    }
+
+    public async Task AddRoleToUserAsync(int userId, int roleId)
+    {
+        var userRole = new UserRole(userId, roleId);
+        await _context.UserRoles.AddAsync(userRole);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RemoveRoleFromUserAsync(int userId, int roleId)
+    {
+        var userRole = await _context.UserRoles
+            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId && ur.IsActive);
+        if (userRole != null)
+        {
+            userRole.MarkAsDeleted();
+            _context.UserRoles.Update(userRole);
+            await _context.SaveChangesAsync();
+        }
     }
 }

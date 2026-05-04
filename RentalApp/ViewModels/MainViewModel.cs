@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RentalApp.Database.Models;
 using RentalApp.Services;
+using RentalApp.Views;
 
 namespace RentalApp.ViewModels;
 
@@ -84,6 +85,12 @@ public partial class MainViewModel : BaseViewModel
             await _authService.LogoutAsync();
             await _navigationService.NavigateToAsync("LoginPage");
         }
+    }
+
+    [RelayCommand]
+    private async Task NavigateToItemsAsync()
+    {
+        await _navigationService.NavigateToAsync(nameof(ItemsListPage));
     }
 
     [RelayCommand]

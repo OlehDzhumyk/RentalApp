@@ -49,16 +49,14 @@ public class ItemRepository : IItemRepository
     /// </summary>
     public async Task<List<Item>> GetNearbyAsync(double lat, double lon, double radiusKm)
     {
-        // Lon, Lat order is standard for NetTopologySuite Point
         var userPoint = _geometryFactory.CreatePoint(new Coordinate(lon, lat));
         var radiusMeters = radiusKm * 1000;
 
         return await _context.Items
             .Include(i => i.Owner)
             .Where(i => i.IsAvailable && i.Location != null)
-            // Distance() on Geography types in EF Core maps to ST_Distance which returns meters
-            .Where(i => i.Location!.Distance(userPoint) <= radiusMeters)
-            .OrderBy(i => i.Location!.Distance(userPoint))
+            .Where(i => i.Location.IsWithinDistance(userPoint, radiusMeters))
+            .OrderBy(i => i.Location.Distance(userPoint))
             .ToListAsync();
     }
 

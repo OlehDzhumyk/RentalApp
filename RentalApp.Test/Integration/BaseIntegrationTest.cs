@@ -33,6 +33,7 @@ public abstract class BaseIntegrationTest : IDisposable
         services.AddScoped<IItemRepository, ItemRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRentalRepository, RentalRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
 
         ServiceProvider = services.BuildServiceProvider();
         Context = ServiceProvider.GetRequiredService<AppDbContext>();

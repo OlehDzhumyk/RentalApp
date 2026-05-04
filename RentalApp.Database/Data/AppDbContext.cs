@@ -1,4 +1,4 @@
-﻿/*
+/*
  * @file AppDbContext.cs
  * @brief Entity Framework Core database context configuration
  * @author RentalApp Development Team
@@ -35,7 +35,6 @@ public class AppDbContext : DbContext
         var config = new ConfigurationBuilder().AddJsonStream(stream).Build();
         var connectionString = config.GetConnectionString("DevelopmentConnection");
 
-        // Configures PostgreSQL connection with NetTopologySuite for spatial queries (PostGIS)
         optionsBuilder.UseNpgsql(connectionString, options =>
         {
             options.UseNetTopologySuite();
@@ -47,37 +46,52 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<Item> Items { get; set; }
+    public DbSet<Rental> Rentals { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Enable PostGIS extension for spatial data operations
         modelBuilder.HasPostgresExtension("postgis");
 
-        // User Entity Configuration
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
         });
 
-        // Item Entity Configuration
         modelBuilder.Entity<Item>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
             entity.Property(e => e.PricePerDay).HasPrecision(18, 2);
-            entity.HasIndex(e => e.Location).HasMethod("GIST"); // Spatial index for performance
+            entity.HasIndex(e => e.Location).HasMethod("GIST");
         });
 
-        // UserRole Junction Table
+        // Rental Entity Configuration
+        modelBuilder.Entity<Rental>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+
+            // Relationships
+            entity.HasOne(r => r.Item)
+                  .WithMany()
+                  .HasForeignKey(r => r.ItemId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(r => r.Borrower)
+                  .WithMany()
+                  .HasForeignKey(r => r.BorrowerId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<UserRole>(entity =>
         {
             entity.HasKey(ur => new { ur.UserId, ur.RoleId });
         });
 
-        // Static System Data (Roles only)
         modelBuilder.Entity<Role>().HasData(
             new Role { Id = 1, Name = "Admin", IsDefault = false },
             new Role { Id = 2, Name = "User", IsDefault = true }

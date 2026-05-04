@@ -1,56 +1,21 @@
 # @file build.yml
-# @brief Optimized CI/CD pipeline with workload caching and parallel execution logic
+# @brief High-performance CI/CD pipeline with caching and logic splitting
 # @author RentalApp Development Team
 # @date 2026
 
-name: Build & Test
+name: Build & Test Suite
 
 on:
-  pull_request:
-    branches: [ main, develop ]
   push:
+    branches: [ main, develop ]
+  pull_request:
     branches: [ main, develop ]
 
 jobs:
-  build:
-    name: Build Solution
+  pipeline:
+    name: Continuous Integration
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      - name: Cache MAUI Workloads
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.dotnet/sdk-advertising
-            ~/.dotnet/metadata
-            ~/.dotnet/packs
-          key: ${{ runner.os }}-maui-workload-android-${{ hashFiles('**/*.csproj', '**/global.json') }}
-
-      - name: Install MAUI Workload
-        run: dotnet workload install maui-android
-
-      - name: Create Dummy Config
-        run: |
-          mkdir -p RentalApp.Database
-          echo '{"ConnectionStrings": {"DevelopmentConnection": "Host=localhost;Database=RentalApp_Test;Username=app_user;Password=app_password"}}' > ./RentalApp.Database/appsettings.json
-
-      - name: Build (Release)
-        run: dotnet build ./RentalApp.sln --configuration Release -p:TargetFrameworks=net10.0
-
-  test:
-    name: Run Test Suites
-    needs: build
-    runs-on: ubuntu-latest
+    
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -66,25 +31,63 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
+      - name: 🛒 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Create Dummy Config for Tests
+      - name: 📦 Cache Packages & Workloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.dotnet/sdk-advertising
+            ~/.dotnet/metadata
+            ~/.dotnet/packs
+          key: ${{ runner.os }}-maui-dev-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-maui-dev-
+
+      - name: 🛠️ Install MAUI Android Workload
+        run: dotnet workload install maui-android
+
+      - name: 📝 Prepare Config (Embedded Resource)
         run: |
           mkdir -p RentalApp.Database
           echo '{"ConnectionStrings": {"DevelopmentConnection": "Host=localhost;Database=RentalApp_Test;Username=app_user;Password=app_password"}}' > ./RentalApp.Database/appsettings.json
 
-      - name: Run Unit Tests
-        run: dotnet test ./RentalApp.Test/RentalApp.Test.csproj --filter "FullyQualifiedName~Unit" --collect:"XPlat Code Coverage"
+      - name: 🔨 Fast Build (DevMode)
+        # Using DevMode to skip mobile compilation overhead during testing
+        run: dotnet build ./RentalApp.sln --configuration Release -p:DevMode=true -p:TargetFrameworks=net10.0
 
-      - name: Run Integration Tests
-        run: dotnet test ./RentalApp.Test/RentalApp.Test.csproj --filter "FullyQualifiedName~Integration" --collect:"XPlat Code Coverage"
+      - name: 🧪 Run Unit Tests
+        run: |
+          dotnet test ./RentalApp.Test/RentalApp.Test.csproj \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~Unit" \
+            --collect:"XPlat Code Coverage"
 
-      - name: Upload to Codecov
+      - name: 🔗 Run Integration Tests (PostGIS)
+        run: |
+          dotnet test ./RentalApp.Test/RentalApp.Test.csproj \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~Integration" \
+            --collect:"XPlat Code Coverage"
+
+      - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: '**/coverage.cobertura.xml'
+          files: '**/TestResults/*/coverage.cobertura.xml'
+          fail_ci_if_error: false
+
+      - name: 📁 Archiving Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rentalapp-test-results
+          path: '**/TestResults/*.trx'

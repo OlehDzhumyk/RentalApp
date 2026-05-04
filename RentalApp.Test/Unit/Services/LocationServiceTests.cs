@@ -6,6 +6,7 @@
 using Microsoft.Maui.Devices.Sensors;
 using Moq;
 using RentalApp.Services;
+using Microsoft.Maui.ApplicationModel;
 
 namespace RentalApp.Test.Unit.Services;
 

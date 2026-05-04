@@ -4,7 +4,7 @@
              xmlns:vm="clr-namespace:RentalApp.ViewModels"
              x:Class="RentalApp.Views.CreateItemPage"
              Title="{Binding Title}">
-
+        
 	<ScrollView>
 		<VerticalStackLayout Spacing="20" Padding="20">
 

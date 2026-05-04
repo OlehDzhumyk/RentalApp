@@ -7,4 +7,5 @@ public interface INavigationService
     Task NavigateBackAsync();
     Task NavigateToRootAsync();
     Task PopToRootAsync();
+    Task ShowAlertAsync(string title, string message, string cancel);
 }

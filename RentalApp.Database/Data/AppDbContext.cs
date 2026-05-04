@@ -1,6 +1,6 @@
 /*
  * @file AppDbContext.cs
- * @brief Entity Framework Core database context configuration
+ * @brief Entity Framework Core database context configuration with PostGIS Geography support
  * @author RentalApp Development Team
  * @date 2026
  */
@@ -65,17 +65,19 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
             entity.Property(e => e.PricePerDay).HasPrecision(18, 2);
+
+            entity.Property(e => e.Location)
+                  .HasColumnType("geography (point, 4326)");
+
             entity.HasIndex(e => e.Location).HasMethod("GIST");
         });
 
-        // Rental Entity Configuration
         modelBuilder.Entity<Rental>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
             entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
 
-            // Relationships
             entity.HasOne(r => r.Item)
                   .WithMany()
                   .HasForeignKey(r => r.ItemId)

@@ -9,6 +9,7 @@ using RentalApp.Database.Repositories;
 
 namespace RentalApp.Test.Integration.Repositories;
 
+[Collection("Database collection")]
 public class RoleRepositoryTests : BaseIntegrationTest
 {
     private readonly IRoleRepository _repository;

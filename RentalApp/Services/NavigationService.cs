@@ -26,4 +26,12 @@ public class NavigationService : INavigationService
     {
         await Shell.Current.Navigation.PopToRootAsync();
     }
+
+    public async Task ShowAlertAsync(string title, string message, string cancel)
+    {
+        if (Shell.Current != null)
+        {
+            await Shell.Current.DisplayAlertAsync(title, message, cancel);
+        }
+    }
 }

@@ -27,3 +27,8 @@ Thumbs.db
 ## App Specific
 appsettings.json
 !appsettings.json.template
+
+# Test and Coverage results
+[Tt]est[Rr]esults/
+coveragereport/
+*.cobertura.xml

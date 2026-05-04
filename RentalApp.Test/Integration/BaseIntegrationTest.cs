@@ -1,6 +1,6 @@
 /*
  * @file BaseIntegrationTest.cs
- * @brief Base class for integration tests providing a clean database state
+ * @brief Infrastructure for integration tests using a real DI container and PostgreSQL
  * @author RentalApp Development Team
  * @date 2026
  */
@@ -8,30 +8,35 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RentalApp.Database.Data;
+using RentalApp.Database.Repositories;
 
-namespace RentalApp.Test.Integration; // Оновлений namespace
+namespace RentalApp.Test.Integration;
 
 public abstract class BaseIntegrationTest : IDisposable
 {
+    protected readonly IServiceProvider ServiceProvider;
     protected readonly AppDbContext Context;
 
     protected BaseIntegrationTest()
     {
-        // Вказуємо шлях до папки виконання, щоб знайти json
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.Test.json", optional: false)
             .Build();
 
+        var services = new ServiceCollection();
         var connectionString = configuration.GetConnectionString("TestConnection");
 
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(connectionString, x => x.UseNetTopologySuite())
-            .Options;
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(connectionString, x => x.UseNetTopologySuite()));
 
-        Context = new AppDbContext(options);
+        services.AddScoped<IItemRepository, ItemRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRentalRepository, RentalRepository>();
 
-        // Повне очищення та перестворення схеми перед кожним тестом
+        ServiceProvider = services.BuildServiceProvider();
+        Context = ServiceProvider.GetRequiredService<AppDbContext>();
+
         Context.Database.EnsureDeleted();
         Context.Database.EnsureCreated();
     }

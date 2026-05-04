@@ -1,65 +1,58 @@
-﻿/*
+/*
  * @file ItemRepositoryTests.cs
- * @brief Unit tests for ItemRepository operations with proper setup
- * @author RentalApp Development Team
- * @date 2026
+ * @brief Integration tests for IItemRepository using real spatial data from Edinburgh
  */
 
-using Microsoft.EntityFrameworkCore;
-using RentalApp.Database.Data;
+using NetTopologySuite.Geometries;
 using RentalApp.Database.Models;
 using RentalApp.Database.Repositories;
 
-namespace RentalApp.Test.Repositories;
+namespace RentalApp.Test.Integration.Repositories;
 
-public class ItemRepositoryTests
+public class ItemRepositoryTests : BaseIntegrationTest
 {
-    private AppDbContext GetDatabaseContext()
+    private readonly IItemRepository _repository;
+    private readonly GeometryFactory _geometryFactory;
+
+    public ItemRepositoryTests()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var databaseContext = new AppDbContext(options);
-        databaseContext.Database.EnsureCreated();
-        return databaseContext;
+        _repository = ServiceProvider.GetRequiredService<IItemRepository>();
+        _geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
     }
 
     [Fact]
-    public async Task AddAsync_ShouldAddItemToDatabase()
+    public async Task GetNearbyAsync_ShouldOnlyReturnItemsInEdinburgh_WhenSearchingFromNapier()
     {
         // Arrange
-        var context = GetDatabaseContext();
-        IItemRepository repository = new ItemRepository(context);
+        var owner = new User { Email = "owner@napier.ac.uk", PasswordHash = "hash", FirstName = "Owner" };
+        Context.Users.Add(owner);
+        await Context.SaveChangesAsync();
 
-        // We must create an owner first to satisfy foreign key constraints/logic
-        var owner = new User
+        // 1. Edinburgh Castle (~1.5km from Napier Merchiston)
+        var edinburghItem = new Item
         {
-            Id = 1,
-            FirstName = "Owner",
-            LastName = "User",
-            Email = "owner@test.com",
-            PasswordHash = "hash",
-            PasswordSalt = "salt"
-        };
-        context.Users.Add(owner);
-        await context.SaveChangesAsync();
-
-        var newItem = new Item
-        {
-            Title = "Drill",
-            Description = "Power drill",
-            PricePerDay = 10.5m,
+            Title = "Castle Drill",
             OwnerId = owner.Id,
-            IsAvailable = true // Explicitly setting state
+            Location = _geometryFactory.CreatePoint(new Coordinate(-3.1999, 55.9486))
         };
 
-        // Act
-        await repository.AddAsync(newItem);
-        var items = await repository.GetAllAsync();
+        // 2. Glasgow George Square (~70km from Napier)
+        var glasgowItem = new Item
+        {
+            Title = "Glasgow Saw",
+            OwnerId = owner.Id,
+            Location = _geometryFactory.CreatePoint(new Coordinate(-4.2518, 55.8642))
+        };
+
+        Context.Items.AddRange(edinburghItem, glasgowItem);
+        await Context.SaveChangesAsync();
+
+        // Act: Search within 5km of Napier Merchiston (55.9331, -3.2139)
+        var results = await _repository.GetNearbyAsync(55.9331, -3.2139, 5.0);
 
         // Assert
-        Assert.Single(items);
-        Assert.Equal("Drill", items[0].Title);
-        Assert.Equal(owner.Id, items[0].OwnerId);
+        Assert.Single(results);
+        Assert.Equal("Castle Drill", results[0].Title);
+        Assert.DoesNotContain(results, i => i.Title == "Glasgow Saw");
     }
 }

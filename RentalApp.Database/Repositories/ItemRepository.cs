@@ -1,4 +1,4 @@
-﻿/*
+/*
  * @file ItemRepository.cs
  * @brief Implementation of IItemRepository with PostGIS spatial support
  * @author RentalApp Development Team
@@ -24,7 +24,6 @@ public class ItemRepository : IItemRepository
     public ItemRepository(AppDbContext context)
     {
         _context = context;
-        // SRID 4326 is standard for GPS (WGS84)
         _geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
     }
 
@@ -55,7 +54,7 @@ public class ItemRepository : IItemRepository
         return await _context.Items
             .Include(i => i.Owner)
             .Where(i => i.IsAvailable && i.Location != null)
-            .Where(i => i.Location!.IsWithinDistance(userPoint, radiusMeters))
+            .Where(i => i.Location!.Distance(userPoint) <= radiusMeters)
             .OrderBy(i => i.Location!.Distance(userPoint))
             .ToListAsync();
     }

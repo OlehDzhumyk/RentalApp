@@ -21,7 +21,6 @@ public class RentalServiceTests
         _rentalRepoMock = new Mock<IRentalRepository>();
         _itemRepoMock = new Mock<IItemRepository>();
 
-        // RED STAGE: RentalService and IRentalRepository do not exist yet.
         _rentalService = new RentalService(_rentalRepoMock.Object, _itemRepoMock.Object);
     }
 

@@ -1,6 +1,8 @@
 /*
  * @file RentalService.cs
  * @brief Implementation of rental management logic including price calculation
+ * @author RentalApp Development Team
+ * @date 2026
  */
 
 using RentalApp.Database.Models;
@@ -20,9 +22,12 @@ public class RentalService : IRentalService
         _itemRepository = itemRepository;
     }
 
+    /// <inheritdoc/>
     public async Task<bool> CanRentItemAsync(int itemId, DateTime start, DateTime end)
     {
         var existingRentals = await _rentalRepository.GetByItemIdAsync(itemId);
+
+        // Logical check for overlapping dates with active rentals
         return !existingRentals.Any(r =>
             (r.Status == "Approved" || r.Status == "OutForRent") &&
             r.StartDate < end &&
@@ -54,18 +59,17 @@ public class RentalService : IRentalService
         return await _rentalRepository.CreateAsync(rental);
     }
 
-    /*
-     * @brief Updates the status of a rental using the State Pattern
-    */
+    /// <summary>
+    /// Updates the status of a rental using the State Pattern logic.
+    /// </summary>
     public async Task<bool> ApproveRentalAsync(int rentalId)
     {
         var rental = await _rentalRepository.GetByIdAsync(rentalId);
         if (rental == null) return false;
 
-        // Use Factory to get the current state logic
+        // Factory returns the strategy based on current status string
         var state = RentalStateFactory.GetState(rental.Status);
 
-        // Attempt to transition
         bool success = await state.ApproveAsync(rental);
 
         if (success)

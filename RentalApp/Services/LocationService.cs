@@ -6,6 +6,7 @@
  */
 
 using Microsoft.Maui.Devices.Sensors;
+using Microsoft.Maui.ApplicationModel;
 
 namespace RentalApp.Services;
 

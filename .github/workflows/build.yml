@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     services:
       postgres:
@@ -34,8 +34,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore workloads
-        run: dotnet workload restore ./RentalApp/RentalApp.csproj
+      - name: Install MAUI Workload
+        run: dotnet workload install maui-android maui-ios
 
       - name: Restore dependencies
         run: dotnet restore ./RentalApp.sln

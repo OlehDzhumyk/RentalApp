@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-android;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks>net10.0;net10.0-android;net10.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>RentalApp</RootNamespace>
@@ -20,6 +20,10 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4"/>
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128"/>
@@ -34,7 +38,6 @@
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.60"/>
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7"/>
 
-		<!-- EF Core kept at 10.0.7 as requested by the system -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
 		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />

@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RentalApp.Database\RentalApp.Database.csproj" />
+    <ProjectReference Include="..\RentalApp\RentalApp.csproj" />
   </ItemGroup>
 
 </Project>

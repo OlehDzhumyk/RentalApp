@@ -5,6 +5,7 @@
 
 using RentalApp.Database.Models;
 using RentalApp.Database.Repositories;
+using RentalApp.Database.States;
 
 namespace RentalApp.Services;
 
@@ -51,5 +52,27 @@ public class RentalService : IRentalService
         };
 
         return await _rentalRepository.CreateAsync(rental);
+    }
+
+    /*
+     * @brief Updates the status of a rental using the State Pattern
+    */
+    public async Task<bool> ApproveRentalAsync(int rentalId)
+    {
+        var rental = await _rentalRepository.GetByIdAsync(rentalId);
+        if (rental == null) return false;
+
+        // Use Factory to get the current state logic
+        var state = RentalStateFactory.GetState(rental.Status);
+
+        // Attempt to transition
+        bool success = await state.ApproveAsync(rental);
+
+        if (success)
+        {
+            await _rentalRepository.UpdateAsync(rental);
+        }
+
+        return success;
     }
 }

@@ -46,4 +46,26 @@ public class RentalServiceTests
         // Assert
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task RequestRental_ShouldCalculateCorrectPrice()
+    {
+        // Arrange
+        var itemId = 1;
+        var item = new Item { Id = itemId, PricePerDay = 10.0m };
+        var start = new DateTime(2026, 7, 1);
+        var end = new DateTime(2026, 7, 4);
+
+        _itemRepoMock.Setup(repo => repo.GetByIdAsync(itemId)).ReturnsAsync(item);
+        _rentalRepoMock.Setup(repo => repo.GetByItemIdAsync(itemId)).ReturnsAsync(new List<Rental>());
+        _rentalRepoMock.Setup(repo => repo.CreateAsync(It.IsAny<Rental>())).ReturnsAsync((Rental r) => r);
+
+        // Act
+        var result = await _rentalService.RequestRentalAsync(itemId, 99, start, end);
+
+        // Assert
+        Assert.Equal(30.0m, result.TotalPrice);
+        Assert.Equal("Requested", result.Status);
+    }
+
 }

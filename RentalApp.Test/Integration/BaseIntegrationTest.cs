@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RentalApp.Database.Data;
 
-namespace RentalApp.Test;
+namespace RentalApp.Test.Integration; // Оновлений namespace
 
 public abstract class BaseIntegrationTest : IDisposable
 {
@@ -17,8 +17,10 @@ public abstract class BaseIntegrationTest : IDisposable
 
     protected BaseIntegrationTest()
     {
+        // Вказуємо шлях до папки виконання, щоб знайти json
         var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.Test.json")
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.Test.json", optional: false)
             .Build();
 
         var connectionString = configuration.GetConnectionString("TestConnection");
@@ -29,7 +31,7 @@ public abstract class BaseIntegrationTest : IDisposable
 
         Context = new AppDbContext(options);
 
-        // Ensure we start with a clean slate
+        // Повне очищення та перестворення схеми перед кожним тестом
         Context.Database.EnsureDeleted();
         Context.Database.EnsureCreated();
     }

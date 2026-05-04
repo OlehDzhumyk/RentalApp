@@ -5,9 +5,8 @@
 
 using RentalApp.Database.Models;
 using RentalApp.Database.Repositories;
-using Xunit;
 
-namespace RentalApp.Test.Repositories;
+namespace RentalApp.Test.Integration.Repositories;
 
 public class RentalRepositoryIntegrationTests : BaseIntegrationTest
 {
@@ -21,7 +20,7 @@ public class RentalRepositoryIntegrationTests : BaseIntegrationTest
     [Fact]
     public async Task CreateAsync_ShouldPersistRentalInDatabase()
     {
-        // Arrange: Prepare real entities (as we use a real DB)
+        // Arrange
         var owner = new User { Email = "owner@test.com", PasswordHash = "hash", FirstName = "Owner" };
         var borrower = new User { Email = "borrower@test.com", PasswordHash = "hash", FirstName = "Borrower" };
         Context.Users.AddRange(owner, borrower);

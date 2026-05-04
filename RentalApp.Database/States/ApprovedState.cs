@@ -3,6 +3,7 @@
  * @brief State implementation for an approved rental ready for pickup
  */
 using RentalApp.Database.Models;
+using RentalApp.Database.States.Interfaces;
 
 namespace RentalApp.Database.States;
 

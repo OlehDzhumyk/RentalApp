@@ -6,6 +6,7 @@
  */
 
 using RentalApp.Database.Models;
+using RentalApp.Database.States.Interfaces;
 
 namespace RentalApp.Database.States;
 

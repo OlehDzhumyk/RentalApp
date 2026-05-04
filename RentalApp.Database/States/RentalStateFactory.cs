@@ -5,6 +5,8 @@
  * @date 2026
  */
 
+using RentalApp.Database.States.Interfaces;
+
 namespace RentalApp.Database.States;
 
 /// <summary>

@@ -1,8 +1,14 @@
+/*
+ * @file UserDetailViewModel.cs
+ * @brief ViewModel for managing user details using the Repository Pattern
+ * @author RentalApp Development Team
+ * @date 2026
+ */
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
-using RentalApp.Database.Data;
 using RentalApp.Database.Models;
+using RentalApp.Database.Repositories;
 using RentalApp.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -12,30 +18,24 @@ namespace RentalApp.ViewModels;
 
 /// <summary>
 /// ViewModel for managing user details including creation, editing, and role management.
-/// Handles both new user creation and existing user modification scenarios.
+/// Orchestrates data via IUserRepository and IRoleRepository to maintain clean architecture.
 /// </summary>
 [QueryProperty(nameof(UserId), "userId")]
 public partial class UserDetailViewModel : BaseViewModel
 {
     #region Private Fields
 
-    /// <summary>Database context for data operations.</summary>
-    private readonly AppDbContext _context;
-
-    /// <summary>Navigation service for page transitions.</summary>
+    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly INavigationService _navigationService;
-
-    /// <summary>Authentication service for user role verification.</summary>
     private readonly IAuthenticationService _authService;
 
-    /// <summary>The current user entity being edited.</summary>
     private User? _currentUser;
 
     #endregion
 
     #region Observable Properties
 
-    /// <summary>The ID of the user being edited.</summary>
     [ObservableProperty]
     public partial int UserId { get; set; }
 
@@ -71,15 +71,16 @@ public partial class UserDetailViewModel : BaseViewModel
 
     #endregion
 
-
     #region Constructor
 
-    /// <summary>
-    /// Initializes a new instance of the UserDetailViewModel class.
-    /// </summary>
-    public UserDetailViewModel(AppDbContext context, INavigationService navigationService, IAuthenticationService authService)
+    public UserDetailViewModel(
+        IUserRepository userRepository,
+        IRoleRepository roleRepository,
+        INavigationService navigationService,
+        IAuthenticationService authService)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
 
@@ -90,41 +91,32 @@ public partial class UserDetailViewModel : BaseViewModel
 
     #region Computed Properties & State Handlers
 
-    /// <summary>Gets the page title based on the current user state.</summary>
     public string PageTitle => IsNewUser ? "Create New User" : "Edit User";
-
-    /// <summary>Visibility logic for password fields.</summary>
     public bool ShowPasswordFields => IsNewUser;
-
-    /// <summary>Prevents users from deleting their own logged-in account.</summary>
     public bool CanDeleteCurrentUser => !IsNewUser && _currentUser?.Id != _authService.CurrentUser?.Id;
 
-    /// <summary>
-    /// Overrides property change notifications to update command states.
-    /// Listens for IsBusy changes to refresh button enabled/disabled states.
-    /// </summary>
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
 
         if (e.PropertyName == nameof(IsBusy))
         {
-            // Генератор автоматично створить ці властивості з суфіксом "Command"
             SaveUserCommand.NotifyCanExecuteChanged();
             DeleteUserCommand.NotifyCanExecuteChanged();
             NavigateBackCommand.NotifyCanExecuteChanged();
+        }
+
+        // Load user data when UserId is set via query property
+        if (e.PropertyName == nameof(UserId))
+        {
+            _ = LoadUserAsync();
         }
     }
 
     #endregion
 
-
     #region Commands
 
-    /// <summary>
-    /// Saves the user data (creates new or updates existing).
-    /// Executable only when the VM is not busy.
-    /// </summary>
     [RelayCommand(CanExecute = nameof(CanSaveUser))]
     private async Task SaveUserAsync()
     {
@@ -156,13 +148,10 @@ public partial class UserDetailViewModel : BaseViewModel
 
     private bool CanSaveUser() => !IsBusy;
 
-    /// <summary>
-    /// Performs a soft delete of the user after confirmation.
-    /// </summary>
     [RelayCommand(CanExecute = nameof(CanDeleteUser))]
     private async Task DeleteUserAsync()
     {
-        if (_currentUser == null || Shell.Current == null) return;
+        if (_currentUser == null) return;
 
         bool confirm = await Shell.Current.DisplayAlertAsync(
             "Confirm Delete",
@@ -177,8 +166,7 @@ public partial class UserDetailViewModel : BaseViewModel
         {
             _currentUser.IsActive = false;
             _currentUser.DeletedAt = DateTime.UtcNow;
-            _context.Users.Update(_currentUser);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(_currentUser);
 
             await NavigateBackAsync();
         }
@@ -194,9 +182,6 @@ public partial class UserDetailViewModel : BaseViewModel
 
     private bool CanDeleteUser() => !IsBusy && CanDeleteCurrentUser;
 
-    /// <summary>
-    /// Assigns a new role to the user and persists changes to the database.
-    /// </summary>
     [RelayCommand]
     private async Task AddRoleAsync(RoleItem role)
     {
@@ -204,10 +189,7 @@ public partial class UserDetailViewModel : BaseViewModel
 
         try
         {
-            var userRole = new UserRole(_currentUser.Id, role.Id);
-            _context.UserRoles.Add(userRole);
-            await _context.SaveChangesAsync();
-
+            await _userRepository.AddRoleToUserAsync(_currentUser.Id, role.Id);
             role.IsAssigned = true;
             SuccessMessage = $"Role '{role.Name}' added.";
         }
@@ -217,9 +199,6 @@ public partial class UserDetailViewModel : BaseViewModel
         }
     }
 
-    /// <summary>
-    /// Removes a role from the user (soft delete) and updates the database.
-    /// </summary>
     [RelayCommand]
     private async Task RemoveRoleAsync(RoleItem role)
     {
@@ -227,18 +206,9 @@ public partial class UserDetailViewModel : BaseViewModel
 
         try
         {
-            var userRole = await _context.UserRoles
-                .FirstOrDefaultAsync(ur => ur.UserId == _currentUser.Id && ur.RoleId == role.Id && ur.IsActive);
-
-            if (userRole != null)
-            {
-                userRole.MarkAsDeleted();
-                _context.UserRoles.Update(userRole);
-                await _context.SaveChangesAsync();
-
-                role.IsAssigned = false;
-                SuccessMessage = $"Role '{role.Name}' removed.";
-            }
+            await _userRepository.RemoveRoleFromUserAsync(_currentUser.Id, role.Id);
+            role.IsAssigned = false;
+            SuccessMessage = $"Role '{role.Name}' removed.";
         }
         catch (Exception ex)
         {
@@ -246,35 +216,22 @@ public partial class UserDetailViewModel : BaseViewModel
         }
     }
 
-    /// <summary>
-    /// Navigates back to the user list management page.
-    /// </summary>
     [RelayCommand]
     private async Task NavigateBackAsync()
     {
-        if (_navigationService != null)
-        {
-            await _navigationService.NavigateToAsync("UserListPage");
-        }
+        await _navigationService.NavigateToAsync("UserListPage");
     }
 
-    #endregion
-
-    #region Private Methods
-
-    /// <summary>
-    /// Navigates to the main dashboard page.
-    /// </summary>
     [RelayCommand]
     private async Task NavigateToDashboardAsync()
     {
         await _navigationService.NavigateToAsync("MainPage");
     }
 
-    /// <summary>
-    /// Loads user data from the database based on the current UserId.
-    /// Initializes new user mode if UserId is 0.
-    /// </summary>
+    #endregion
+
+    #region Private Methods
+
     private async Task LoadUserAsync()
     {
         if (!_authService.HasRole(RoleConstants.Admin))
@@ -286,7 +243,7 @@ public partial class UserDetailViewModel : BaseViewModel
         IsBusy = true;
         try
         {
-            var allRoles = await _context.Roles.ToListAsync();
+            var allRoles = await _roleRepository.GetAllAsync();
 
             if (UserId == 0)
             {
@@ -297,7 +254,6 @@ public partial class UserDetailViewModel : BaseViewModel
                 await InitializeExistingUserAsync(allRoles);
             }
 
-            // Notify UI about state-dependent property changes
             OnPropertyChanged(nameof(PageTitle));
             OnPropertyChanged(nameof(ShowPasswordFields));
             OnPropertyChanged(nameof(CanDeleteCurrentUser));
@@ -312,9 +268,6 @@ public partial class UserDetailViewModel : BaseViewModel
         }
     }
 
-    /// <summary>
-    /// Sets up the ViewModel state for creating a new user.
-    /// </summary>
     private void InitializeNewUser(List<Role> allRoles)
     {
         IsNewUser = true;
@@ -336,16 +289,10 @@ public partial class UserDetailViewModel : BaseViewModel
             }));
     }
 
-    /// <summary>
-    /// Loads existing user data and maps their assigned roles.
-    /// </summary>
     private async Task InitializeExistingUserAsync(List<Role> allRoles)
     {
         IsNewUser = false;
-        _currentUser = await _context.Users
-            .Include(u => u.UserRoles)
-            .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.Id == UserId);
+        _currentUser = await _userRepository.GetByIdAsync(UserId);
 
         if (_currentUser == null)
         {
@@ -373,13 +320,9 @@ public partial class UserDetailViewModel : BaseViewModel
             }));
     }
 
-    /// <summary>
-    /// Internal logic to create a new user record with hashed password and roles.
-    /// </summary>
     private async Task CreateUserInternalAsync()
     {
-        var existingUser = await _context.Users.AnyAsync(u => u.Email == Email.Trim());
-        if (existingUser)
+        if (await _userRepository.ExistsAsync(Email.Trim()))
         {
             throw new InvalidOperationException("A user with this email already exists.");
         }
@@ -399,40 +342,27 @@ public partial class UserDetailViewModel : BaseViewModel
             IsActive = IsActive
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        await _userRepository.AddAsync(user);
 
+        // Map initial roles if any were selected during creation
         var selectedRoles = AvailableRoles.Where(r => r.IsAssigned).ToList();
         foreach (var role in selectedRoles)
         {
-            _context.UserRoles.Add(new UserRole(user.Id, role.Id));
-        }
-
-        if (selectedRoles.Any())
-        {
-            await _context.SaveChangesAsync();
+            await _userRepository.AddRoleToUserAsync(user.Id, role.Id);
         }
 
         _currentUser = user;
         IsNewUser = false;
     }
 
-
-    /// <summary>
-    /// Internal logic to update an existing user's information.
-    /// Validates email uniqueness before committing changes.
-    /// </summary>
     private async Task UpdateUserInternalAsync()
     {
         if (_currentUser == null) return;
 
         var emailTrimmed = Email.Trim();
+        var existingUser = await _userRepository.GetByEmailAsync(emailTrimmed);
 
-        // Check for email uniqueness among other users
-        var existingUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == emailTrimmed && u.Id != _currentUser.Id);
-
-        if (existingUser != null)
+        if (existingUser != null && existingUser.Id != _currentUser.Id)
         {
             throw new InvalidOperationException("Email is already used by another user.");
         }
@@ -443,15 +373,9 @@ public partial class UserDetailViewModel : BaseViewModel
         _currentUser.IsActive = IsActive;
         _currentUser.UpdatedAt = DateTime.UtcNow;
 
-        _context.Users.Update(_currentUser);
-        await _context.SaveChangesAsync();
+        await _userRepository.UpdateAsync(_currentUser);
     }
 
-    /// <summary>
-    /// Validates all user input fields based on whether a new user is being created or updated.
-    /// Sets the UI error message if any validation rule fails.
-    /// </summary>
-    /// <returns>True if validation passes; otherwise, false.</returns>
     private bool ValidateInput()
     {
         if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName))
@@ -460,13 +384,7 @@ public partial class UserDetailViewModel : BaseViewModel
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(Email))
-        {
-            SetError("Email is required.");
-            return false;
-        }
-
-        if (!IsValidEmail(Email.Trim()))
+        if (string.IsNullOrWhiteSpace(Email) || !IsValidEmail(Email.Trim()))
         {
             SetError("Please enter a valid email address.");
             return false;
@@ -474,15 +392,9 @@ public partial class UserDetailViewModel : BaseViewModel
 
         if (IsNewUser)
         {
-            if (string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(Password) || Password.Length < 6)
             {
-                SetError("Password is required.");
-                return false;
-            }
-
-            if (Password.Length < 6)
-            {
-                SetError("Password must be at least 6 characters long.");
+                SetError("Password is required and must be at least 6 characters.");
                 return false;
             }
 
@@ -496,28 +408,17 @@ public partial class UserDetailViewModel : BaseViewModel
         return true;
     }
 
-    /// <summary>
-    /// Validates the format of an email address.
-    /// </summary>
     private bool IsValidEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email)) return false;
-        try
-        {
-            return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-                RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
-        }
-        catch (RegexMatchTimeoutException) { return false; }
+        return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
     }
 
-    /// <summary>
-    /// Resets error and success messages to their default empty states.
-    /// </summary>
     private void ClearMessages()
     {
-        ClearError(); // Method from BaseViewModel
+        ClearError();
         SuccessMessage = string.Empty;
     }
 
     #endregion
-} // End of UserDetailViewModel
+}

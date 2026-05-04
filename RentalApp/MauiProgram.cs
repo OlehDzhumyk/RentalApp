@@ -1,6 +1,8 @@
 /*
  * @file MauiProgram.cs
  * @brief Application entry point and service registration
+ * @author RentalApp Development Team
+ * @date 2026
  */
 
 using Microsoft.Extensions.Logging;
@@ -25,29 +27,32 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Database and Repositories
+        // Infrastructure
         builder.Services.AddDbContext<AppDbContext>();
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddScoped<IItemRepository, ItemRepository>();
-
-        // Services
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<ILocationService, LocationService>();
 
+        // Repositories
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IItemRepository, ItemRepository>();
+
         // ViewModels
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<RegisterViewModel>();
         builder.Services.AddTransient<ItemsListViewModel>();
         builder.Services.AddTransient<CreateItemViewModel>();
         builder.Services.AddTransient<NearbyItemsViewModel>();
 
-        // Pages
+        // Views
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<RegisterPage>();
         builder.Services.AddTransient<ItemsListPage>();
         builder.Services.AddTransient<CreateItemPage>();
 
+        builder.Services.AddSingleton<AppShellViewModel>();
         builder.Services.AddSingleton<AppShell>();
 
 #if DEBUG
@@ -56,16 +61,24 @@ public static class MauiProgram
 
         var app = builder.Build();
 
-        // Runtime Database Seeding (Optional & Conditional)
+        // Runtime Database Initialization
 #if DEBUG
+        SeedDatabase(app);
+#endif
+
+        return app;
+    }
+
+    /// <summary>
+    /// Seeds the database with initial fixtures in debug mode.
+    /// </summary>
+    private static void SeedDatabase(MauiApp app)
+    {
         Task.Run(async () =>
         {
             using var scope = app.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await DbInitializer.SeedAsync(context);
         }).Wait();
-#endif
-
-        return app;
     }
 }

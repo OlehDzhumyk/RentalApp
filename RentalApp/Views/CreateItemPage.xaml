@@ -3,67 +3,80 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RentalApp.ViewModels"
              x:Class="RentalApp.Views.CreateItemPage"
+             x:DataType="vm:CreateItemViewModel"
              Title="{Binding Title}">
-        
-	<ScrollView>
-		<VerticalStackLayout Spacing="20" Padding="20">
 
-			<Label Text="Item Information"
+    <!--
+        Item Creation Interface
+        Provides form controls for listing new rental assets with spatial metadata support
+    -->
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="20">
+
+            <Label Text="Item Information"
                    FontSize="24"
                    FontAttributes="Bold" />
 
-			<!-- Error Display -->
-			<Frame BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#1B0000}"
+            <!-- Dynamic Error Feedback Display -->
+            <Frame BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#1B0000}"
                    BorderColor="#F44336"
                    IsVisible="{Binding HasError}"
                    Padding="10">
-				<Label Text="{Binding ErrorMessage}" TextColor="#D32F2F" />
-			</Frame>
+                <Label Text="{Binding ErrorMessage}" 
+                       TextColor="#D32F2F" />
+            </Frame>
 
-			<VerticalStackLayout Spacing="5">
-				<Label Text="Title" FontAttributes="Bold" />
-				<Entry Text="{Binding ItemTitle}" Placeholder="e.g. Cordless Drill" />
-			</VerticalStackLayout>
+            <!-- Asset Title Entry -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Title" FontAttributes="Bold" />
+                <Entry Text="{Binding ItemTitle}" 
+                       Placeholder="e.g. Cordless Drill" />
+            </VerticalStackLayout>
 
-			<VerticalStackLayout Spacing="5">
-				<Label Text="Description" FontAttributes="Bold" />
-				<Editor Text="{Binding Description}"
+            <!-- Comprehensive Description Input -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Description" FontAttributes="Bold" />
+                <Editor Text="{Binding Description}"
                         Placeholder="Describe the item condition, inclusions, etc."
                         HeightRequest="100" />
-			</VerticalStackLayout>
+            </VerticalStackLayout>
 
-			<VerticalStackLayout Spacing="5">
-				<Label Text="Price Per Day (£)" FontAttributes="Bold" />
-				<Entry Text="{Binding PricePerDay}"
+            <!-- Financial Configuration -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Price Per Day (£)" FontAttributes="Bold" />
+                <Entry Text="{Binding PricePerDay}"
                        Keyboard="Numeric"
                        Placeholder="0.00" />
-			</VerticalStackLayout>
+            </VerticalStackLayout>
 
-			<!-- Location Toggle (Tier 2 Feature) -->
-			<VerticalStackLayout Spacing="5">
-				<HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-					<Switch IsToggled="{Binding UseCurrentLocation}" />
-					<Label Text="Attach my current location" VerticalOptions="Center" />
-				</HorizontalStackLayout>
-				<Label Text="(Helps people nearby find your item faster)"
+            <!-- Geolocation Attachment Toggle -->
+            <VerticalStackLayout Spacing="5">
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Switch IsToggled="{Binding UseCurrentLocation}" />
+                    <Label Text="Attach my current location" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Label Text="(Helps people nearby find your item faster)"
                        FontSize="11"
                        TextColor="{StaticResource Gray500}"
                        Margin="45,-5,0,0" />
-			</VerticalStackLayout>
+            </VerticalStackLayout>
 
-			<Button Text="List Item"
+            <!-- Submission Controls -->
+            <Button Text="List Item"
                     Command="{Binding SaveCommand}"
                     Margin="0,20,0,0" />
 
-			<Button Text="Cancel"
+            <Button Text="Cancel"
                     Command="{Binding CancelCommand}"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource Gray600}" />
 
-			<ActivityIndicator IsRunning="{Binding IsBusy}"
+            <!-- Async Operation Feedback -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
                                IsVisible="{Binding IsBusy}"
                                HorizontalOptions="Center" />
 
-		</VerticalStackLayout>
-	</ScrollView>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

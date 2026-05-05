@@ -3,33 +3,63 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RentalApp.ViewModels"
              x:Class="RentalApp.Views.NearbyItemsPage"
+             x:DataType="vm:NearbyItemsViewModel"
              Title="{Binding Title}">
 
-    <RefreshView Command="{Binding LoadNearbyItemsCommand}" IsRefreshing="{Binding IsBusy}">
+    <!--
+        Nearby Items Discovery
+        Visualizes rental assets filtered by spatial proximity (PostGIS ST_DWithin)
+    -->
+
+    <RefreshView Command="{Binding LoadNearbyItemsCommand}"
+                 IsRefreshing="{Binding IsBusy}">
+
         <CollectionView ItemsSource="{Binding NearbyItems}">
+
+            <!-- Spatial Search Empty State -->
             <CollectionView.EmptyView>
-                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                    <Label Text="No items found within 10km" HorizontalOptions="Center" />
-                    <Button Text="Try Again" Command="{Binding LoadNearbyItemsCommand}" />
+                <VerticalStackLayout VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Spacing="10">
+                    <Label Text="No items found within the search radius"
+                           HorizontalOptions="Center" />
+                    <Button Text="Try Again"
+                            Command="{Binding LoadNearbyItemsCommand}" />
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
 
+            <!-- Proximity-Based Item Template -->
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="vm:ItemDisplayWrapper">
-                    <Frame Margin="10,5" Padding="15">
+                    <Border Margin="10,5"
+                            Padding="15"
+                            Stroke="{StaticResource Gray200}"
+                            StrokeThickness="1">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+
                         <Grid ColumnDefinitions="*, Auto">
-                            <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                <Label Text="{Binding Item.Title}" FontSize="18" FontAttributes="Bold" />
-                                <Label Text="{Binding FormattedDistance}" TextColor="{StaticResource Primary}" />
+                            <VerticalStackLayout Grid.Column="0"
+                                                 Spacing="2">
+                                <Label Text="{Binding Item.Title}"
+                                       FontSize="18"
+                                       FontAttributes="Bold" />
+
+                                <!-- Distance feedback formatted in Navigation/Spatial logic -->
+                                <Label Text="{Binding FormattedDistance}"
+                                       TextColor="{StaticResource Primary}" />
                             </VerticalStackLayout>
-                            <Label Grid.Column="1" 
-                                   Text="{Binding Item.PricePerDay, StringFormat='£{0}/day'}" 
-                                   VerticalOptions="Center" 
+
+                            <Label Grid.Column="1"
+                                   Text="{Binding Item.PricePerDay, StringFormat='£{0:F2}/day'}"
+                                   VerticalOptions="Center"
                                    FontAttributes="Bold" />
                         </Grid>
-                    </Frame>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
+
         </CollectionView>
     </RefreshView>
 </ContentPage>

@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Shell
-    x:Class="RentalApp.AppShell"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:RentalApp.Views"
-    Shell.FlyoutBehavior="Disabled">
+<Shell x:Class="RentalApp.AppShell"
+       xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:views="clr-namespace:RentalApp.Views"
+       xmlns:vm="clr-namespace:RentalApp.ViewModels"
+       x:DataType="vm:AppShellViewModel"
+       Shell.FlyoutBehavior="Disabled">
 
-    <ShellContent ContentTemplate="{DataTemplate views:LoginPage}" />
+    <!--
+        Application Navigation Infrastructure
+        Defines the visual hierarchy and initial route selection for the platform
+    -->
+
+    <ShellContent Title="Login"
+                  ContentTemplate="{DataTemplate views:LoginPage}" 
+                  Route="login" />
 
 </Shell>

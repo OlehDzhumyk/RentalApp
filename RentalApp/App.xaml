@@ -1,13 +1,21 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:RentalApp.Converters"
              xmlns:local="clr-namespace:RentalApp"
              x:Class="RentalApp.App">
+
+    <!--
+        Global Application Resources
+        Defines shared converters, branding colors, and component styling
+    -->
+
     <Application.Resources>
         <ResourceDictionary>
+            <!-- Core UI Converters -->
             <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />

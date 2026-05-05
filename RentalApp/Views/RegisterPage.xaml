@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="RentalApp.Views.RegisterPage"
-             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RentalApp.ViewModels"
+             x:Class="RentalApp.Views.RegisterPage"
+             x:DataType="vm:RegisterViewModel"
              Title="{Binding Title}">
+
+    <!--
+        User Onboarding Portal
+        Facilitates new account creation with full validation and identity management.
+    -->
 
     <ContentPage.BindingContext>
         <vm:RegisterViewModel />
@@ -13,18 +19,28 @@
         <Grid Padding="30" RowSpacing="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <!-- Header -->
                 <RowDefinition Height="Auto" />
+                <!-- Error -->
                 <RowDefinition Height="Auto" />
+                <!-- First Name -->
                 <RowDefinition Height="Auto" />
+                <!-- Last Name -->
                 <RowDefinition Height="Auto" />
+                <!-- Email -->
                 <RowDefinition Height="Auto" />
+                <!-- Password -->
                 <RowDefinition Height="Auto" />
+                <!-- Confirm Password -->
                 <RowDefinition Height="Auto" />
+                <!-- Terms -->
                 <RowDefinition Height="Auto" />
+                <!-- Action -->
                 <RowDefinition Height="Auto" />
+                <!-- Footer -->
             </Grid.RowDefinitions>
 
-            <!-- Header -->
+            <!-- Brand Identity Section -->
             <Label Grid.Row="0"
                    Text="Create Account"
                    FontSize="28"
@@ -33,7 +49,7 @@
                    Margin="0,20,0,30"
                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
 
-            <!-- Error Message -->
+            <!-- Dynamic Validation Feedback -->
             <Border Grid.Row="1"
                     BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#1B0000}"
                     Stroke="{AppThemeBinding Light=#F44336, Dark=#EF5350}"
@@ -48,7 +64,7 @@
                        FontSize="14" />
             </Border>
 
-            <!-- First Name Entry -->
+            <!-- Identity Inputs -->
             <Border Grid.Row="2"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -62,7 +78,6 @@
                        Margin="15,10" />
             </Border>
 
-            <!-- Last Name Entry -->
             <Border Grid.Row="3"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -76,7 +91,7 @@
                        Margin="15,10" />
             </Border>
 
-            <!-- Email Entry -->
+            <!-- Credential Configuration -->
             <Border Grid.Row="4"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -91,7 +106,6 @@
                        Margin="15,10" />
             </Border>
 
-            <!-- Password Entry -->
             <Border Grid.Row="5"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -106,7 +120,6 @@
                        Margin="15,10" />
             </Border>
 
-            <!-- Confirm Password Entry -->
             <Border Grid.Row="6"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -121,15 +134,17 @@
                        Margin="15,10" />
             </Border>
 
-            <!-- Terms and Conditions -->
-            <StackLayout Grid.Row="7" Orientation="Horizontal" HorizontalOptions="Start">
+            <!-- Legal and Compliance -->
+            <StackLayout Grid.Row="7" 
+                         Orientation="Horizontal" 
+                         HorizontalOptions="Start">
                 <CheckBox IsChecked="{Binding AcceptTerms}" />
                 <Label Text="I accept the terms and conditions" 
                        VerticalOptions="Center" 
                        FontSize="14" />
             </StackLayout>
 
-            <!-- Register Button -->
+            <!-- Execution Actions -->
             <Button Grid.Row="8"
                     Text="Create Account"
                     Command="{Binding RegisterCommand}"
@@ -138,15 +153,14 @@
                     HeightRequest="50"
                     CornerRadius="8"
                     FontSize="16"
-                    FontAttributes="Bold"
-                    IsEnabled="true" />
+                    FontAttributes="Bold" />
 
-            <!-- Footer -->
+            <!-- Onboarding Lifecycle Feedback -->
             <StackLayout Grid.Row="9" Spacing="10" Margin="0,20,0,0">
                 <ActivityIndicator IsVisible="{Binding IsBusy}"
                                   IsRunning="{Binding IsBusy}"
                                   Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                
+
                 <Button Text="Already have an account? Login"
                         Command="{Binding NavigateBackToLoginCommand}"
                         BackgroundColor="Transparent"

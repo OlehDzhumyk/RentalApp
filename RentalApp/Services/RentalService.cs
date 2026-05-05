@@ -1,6 +1,6 @@
 /*
  * @file RentalService.cs
- * @brief Implementation of rental management logic including price calculation
+ * @brief Implementation of rental management logic using the State Pattern
  * @author RentalApp Development Team
  * @date 2026
  */
@@ -22,28 +22,22 @@ public class RentalService : IRentalService
         _itemRepository = itemRepository;
     }
 
-    /// <inheritdoc/>
     public async Task<bool> CanRentItemAsync(int itemId, DateTime start, DateTime end)
     {
         var existingRentals = await _rentalRepository.GetByItemIdAsync(itemId);
-
-        // Logical check for overlapping dates with active rentals
         return !existingRentals.Any(r =>
             (r.Status == "Approved" || r.Status == "OutForRent") &&
             r.StartDate < end &&
             r.EndDate > start);
     }
 
-    /// <summary>
-    /// Creates a new rental request after validating availability and calculating total price.
-    /// </summary>
     public async Task<Rental> RequestRentalAsync(int itemId, int borrowerId, DateTime start, DateTime end)
     {
         var item = await _itemRepository.GetByIdAsync(itemId);
         if (item == null) throw new ArgumentException("Item not found");
 
         if (!await CanRentItemAsync(itemId, start, end))
-            throw new InvalidOperationException("Item is not available for the selected dates.");
+            throw new InvalidOperationException("Item is not available for selected dates.");
 
         var rental = new Rental
         {
@@ -52,25 +46,22 @@ public class RentalService : IRentalService
             StartDate = start,
             EndDate = end,
             Status = "Requested",
-            // Logic: Duration in days * daily rate (ensuring decimal precision)
-            TotalPrice = (decimal)(end - start).TotalDays * item.PricePerDay
+            TotalPrice = (decimal)Math.Max(1, (end - start).TotalDays) * item.PricePerDay
         };
 
         return await _rentalRepository.CreateAsync(rental);
     }
 
     /// <summary>
-    /// Updates the status of a rental using the State Pattern logic.
+    /// Progresses the rental to the next logical state based on the requested action.
     /// </summary>
-    public async Task<bool> ApproveRentalAsync(int rentalId)
+    public async Task<bool> TransitionAsync(int rentalId, Func<IRentalState, Rental, Task<bool>> action)
     {
         var rental = await _rentalRepository.GetByIdAsync(rentalId);
         if (rental == null) return false;
 
-        // Factory returns the strategy based on current status string
         var state = RentalStateFactory.GetState(rental.Status);
-
-        bool success = await state.ApproveAsync(rental);
+        bool success = await action(state, rental);
 
         if (success)
         {

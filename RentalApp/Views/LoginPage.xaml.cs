@@ -1,21 +1,26 @@
+/*
+ * @file LoginPage.xaml.cs
+ * @brief UI-behind logic for user authentication
+ * @author RentalApp Development Team
+ * @date 2026
+ */
+
 using RentalApp.ViewModels;
 
 namespace RentalApp.Views;
 
-/// <summary>
-/// Interaction logic for LoginPage.xaml.
-/// Handles UI-specific tasks such as focus management that are outside the scope of the ViewModel.
-/// </summary>
 public partial class LoginPage : ContentPage
 {
-    public LoginPage()
+    /// <summary>
+    /// Initializes the page and binds the injected ViewModel.
+    /// </summary>
+    /// <param name="viewModel">The authenticated ViewModel instance provided by DI.</param>
+    public LoginPage(LoginViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = viewModel;
     }
 
-    /// <summary>
-    /// Ensures the primary input field is focused when the page appears to improve user UX.
-    /// </summary>
     protected override void OnAppearing()
     {
         base.OnAppearing();

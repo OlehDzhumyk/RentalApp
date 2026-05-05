@@ -7,13 +7,13 @@
        x:DataType="vm:AppShellViewModel"
        Shell.FlyoutBehavior="Disabled">
 
-    <!--
-        Application Navigation Infrastructure
-        Defines the visual hierarchy and initial route selection for the platform
-    -->
-
     <ShellContent Title="Login"
                   ContentTemplate="{DataTemplate views:LoginPage}" 
-                  Route="login" />
+                  Route="LoginPage" />
+
+    <!-- Main application branch -->
+    <ShellContent Title="Home"
+                  ContentTemplate="{DataTemplate views:MainPage}" 
+                  Route="MainPage" />
 
 </Shell>

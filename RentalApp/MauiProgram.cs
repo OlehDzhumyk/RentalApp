@@ -76,11 +76,19 @@ public static class MauiProgram
 
     private static void SeedDatabase(MauiApp app)
     {
-        Task.Run(async () =>
+        // Execute seeding without blocking the main thread
+        _ = Task.Run(async () =>
         {
-            using var scope = app.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await DbInitializer.SeedAsync(context);
-        }).Wait();
+            try
+            {
+                using var scope = app.Services.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                await DbInitializer.SeedAsync(context);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Database seeding failed: {ex.Message}");
+            }
+        });
     }
 }

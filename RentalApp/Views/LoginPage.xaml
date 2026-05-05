@@ -7,35 +7,22 @@
              Title="{Binding Title}"
              Shell.NavBarIsVisible="False">
 
-    <!--
-        Authentication Portal
-        Handles secure user login and navigation to registration/recovery flows.
-        Retains x:Name references for code-behind focus management.
+    <!-- 
+        Professional Note: BindingContext is removed from XAML to enable 
+        Constructor Injection via MauiProgram DI container.
     -->
-
-    <ContentPage.BindingContext>
-        <vm:LoginViewModel />
-    </ContentPage.BindingContext>
 
     <ScrollView>
         <Grid Padding="30" RowSpacing="20" VerticalOptions="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <!-- Logo -->
                 <RowDefinition Height="Auto" />
-                <!-- Error -->
                 <RowDefinition Height="Auto" />
-                <!-- Email -->
                 <RowDefinition Height="Auto" />
-                <!-- Password -->
                 <RowDefinition Height="Auto" />
-                <!-- Options -->
                 <RowDefinition Height="Auto" />
-                <!-- Login Btn -->
                 <RowDefinition Height="Auto" />
-                <!-- Indicator -->
                 <RowDefinition Height="Auto" />
-                <!-- Footer -->
             </Grid.RowDefinitions>
 
             <!-- Brand Identity -->
@@ -62,7 +49,7 @@
                        FontSize="14" />
             </Border>
 
-            <!-- Credential Inputs -->
+            <!-- Email Input -->
             <Border Grid.Row="2"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -78,6 +65,7 @@
                        Margin="15,10" />
             </Border>
 
+            <!-- Password Input -->
             <Border Grid.Row="3"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -93,13 +81,9 @@
                        Margin="15,10" />
             </Border>
 
-            <!-- Session Management -->
-            <StackLayout Grid.Row="4" 
-                         Orientation="Horizontal" 
-                         HorizontalOptions="Start">
+            <StackLayout Grid.Row="4" Orientation="Horizontal" HorizontalOptions="Start">
                 <CheckBox IsChecked="{Binding RememberMe}" />
-                <Label Text="Remember me" 
-                       VerticalOptions="Center" />
+                <Label Text="Remember me" VerticalOptions="Center" />
             </StackLayout>
 
             <Button Grid.Row="5"
@@ -117,10 +101,7 @@
                                IsRunning="{Binding IsBusy}"
                                Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
 
-            <!-- Secondary Navigation Actions -->
-            <StackLayout Grid.Row="7" 
-                         Spacing="10" 
-                         Margin="0,20,0,0">
+            <StackLayout Grid.Row="7" Spacing="10" Margin="0,20,0,0">
                 <Button Text="Create Account"
                         Command="{Binding NavigateToRegisterCommand}"
                         BackgroundColor="Transparent"

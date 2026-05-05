@@ -1,5 +1,5 @@
 # @file build.yml
-# @brief High-performance CI/CD pipeline with caching and logic splitting
+# @brief Professional CI/CD pipeline for .NET 10 MAUI & PostGIS
 # @author RentalApp Development Team
 # @date 2026
 
@@ -11,83 +11,103 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+env:
+  # Standardized environment for steps
+  DB_NAME: RentalApp_Test
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
-  pipeline:
-    name: Continuous Integration
+  # JOB 1: Validation of core logic and database integration
+  test-logic:
+    name: Logic and Integration Tests
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 15
     services:
       postgres:
         image: postgis/postgis:16-3.4
         env:
-          POSTGRES_USER: app_user
-          POSTGRES_PASSWORD: app_password
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
           POSTGRES_DB: RentalApp_Test
-        ports: [ 5432:5432 ]
+        ports:
+          - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U app_user" 
+          --health-cmd "pg_isready -U ${{ secrets.DB_USER }} -d RentalApp_Test" 
           --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
-      - name: 🛒 Checkout Code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: ⚙️ Setup .NET 10
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+
+      - name: Prepare Configuration
+        run: |
+          mkdir -p RentalApp.Database
+          cat <<EOF > ./RentalApp.Database/appsettings.json
+          {
+            "ConnectionStrings": {
+              "DevelopmentConnection": "Host=localhost;Port=5432;Database=${{ env.DB_NAME }};Username=${{ secrets.DB_USER }};Password=${{ secrets.DB_PASSWORD }}"
+            }
+          }
+          EOF
+
+      - name: Build and Test Logic
+        run: |
+          dotnet build-server shutdown
+          dotnet restore ./RentalApp.sln
+          # Build only the core library target to skip MAUI platform checks
+          dotnet build ./RentalApp.sln --configuration Release -f net10.0 --no-restore --no-incremental
+          dotnet test ./RentalApp.Test/RentalApp.Test.csproj \
+            --configuration Release \
+            --no-build \
+            --framework net10.0 \
+            --results-directory ./TestResults \
+            --collect:"XPlat Code Coverage"
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./TestResults/**/*.xml
+
+  # JOB 2: Platform-specific build validation
+  build-android:
+    name: Android Build Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: 📦 Cache Packages & Workloads
+      - name: Cache MAUI Workloads
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.nuget/packages
-            ~/.dotnet/sdk-advertising
-            ~/.dotnet/metadata
-            ~/.dotnet/packs
-          key: ${{ runner.os }}-maui-dev-${{ hashFiles('**/*.csproj') }}
-          restore-keys: ${{ runner.os }}-maui-dev-
+          path: ~/.dotnet/packs
+          key: ${{ runner.os }}-maui-android-${{ hashFiles('**/*.csproj') }}
 
-      - name: 🛠️ Install MAUI Android Workload
+      - name: Install MAUI Android
         run: dotnet workload install maui-android
 
-      - name: 📝 Prepare Config (Embedded Resource)
+      - name: Build Android Package
         run: |
-          mkdir -p RentalApp.Database
-          echo '{"ConnectionStrings": {"DevelopmentConnection": "Host=localhost;Database=RentalApp_Test;Username=app_user;Password=app_password"}}' > ./RentalApp.Database/appsettings.json
+          dotnet build-server shutdown
+          dotnet build ./RentalApp/RentalApp.csproj --configuration Release -f net10.0-android --no-incremental
 
-      - name: 🔨 Fast Build (DevMode)
-        # Using DevMode to skip mobile compilation overhead during testing
-        run: dotnet build ./RentalApp.sln --configuration Release -p:DevMode=true -p:TargetFrameworks=net10.0
-
-      - name: 🧪 Run Unit Tests
-        run: |
-          dotnet test ./RentalApp.Test/RentalApp.Test.csproj \
-            --configuration Release \
-            --no-build \
-            --filter "FullyQualifiedName~Unit" \
-            --collect:"XPlat Code Coverage"
-
-      - name: 🔗 Run Integration Tests (PostGIS)
-        run: |
-          dotnet test ./RentalApp.Test/RentalApp.Test.csproj \
-            --configuration Release \
-            --no-build \
-            --filter "FullyQualifiedName~Integration" \
-            --collect:"XPlat Code Coverage"
-
-      - name: 📊 Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: '**/TestResults/*/coverage.cobertura.xml'
-          fail_ci_if_error: false
-
-      - name: 📁 Archiving Test Results
+      - name: Publish Test Artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: rentalapp-test-results
-          path: '**/TestResults/*.trx'
+          name: build-logs
+          path: ./**/*.log
+          retention-days: 7

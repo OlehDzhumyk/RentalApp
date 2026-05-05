@@ -4,38 +4,64 @@
              xmlns:vm="clr-namespace:RentalApp.ViewModels"
              xmlns:models="clr-namespace:RentalApp.Database.Models;assembly=RentalApp.Database"
              x:Class="RentalApp.Views.ItemsListPage"
+             x:DataType="vm:ItemsListViewModel"
              Title="{Binding Title}">
 
+    <!--
+        Items Explorer View
+        Provides a paginated list of available rental assets with pull-to-refresh support
+    -->
+
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Add" 
+        <ToolbarItem Text="Add"
                      Command="{Binding NavigateToCreateItemCommand}" />
     </ContentPage.ToolbarItems>
 
-    <RefreshView Command="{Binding LoadItemsCommand}" IsRefreshing="{Binding IsBusy}">
-        <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
+    <RefreshView Command="{Binding LoadItemsCommand}"
+                 IsRefreshing="{Binding IsBusy}">
+
+        <CollectionView ItemsSource="{Binding Items}"
+                        SelectionMode="None">
+
+            <!-- Empty State Display -->
             <CollectionView.EmptyView>
-                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
-                    <Label Text="No items found." HorizontalOptions="Center" />
-                    <Button Text="Refresh" Command="{Binding LoadItemsCommand}" />
+                <VerticalStackLayout HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Spacing="10">
+                    <Label Text="No items found."
+                           HorizontalOptions="Center" />
+                    <Button Text="Refresh"
+                            Command="{Binding LoadItemsCommand}" />
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
 
+            <!-- Asset Item Template -->
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Item">
-                    <Grid Padding="15" ColumnDefinitions="*, Auto">
-                        <VerticalStackLayout Grid.Column="0" Spacing="2">
-                            <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" />
-                            <Label Text="{Binding Description}" FontSize="14" MaxLines="2" LineBreakMode="TailTruncation" TextColor="{StaticResource Gray600}" />
+                    <Grid Padding="15"
+                          ColumnDefinitions="*, Auto">
+
+                        <VerticalStackLayout Grid.Column="0"
+                                             Spacing="2">
+                            <Label Text="{Binding Title}"
+                                   FontSize="18"
+                                   FontAttributes="Bold" />
+                            <Label Text="{Binding Description}"
+                                   FontSize="14"
+                                   MaxLines="2"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="{StaticResource Gray600}" />
                         </VerticalStackLayout>
 
-                        <Label Grid.Column="1" 
-                               Text="{Binding PricePerDay, StringFormat='£{0:F2}/day'}" 
-                               VerticalOptions="Center" 
-                               FontAttributes="Bold" 
+                        <Label Grid.Column="1"
+                               Text="{Binding PricePerDay, StringFormat='£{0:F2}/day'}"
+                               VerticalOptions="Center"
+                               FontAttributes="Bold"
                                TextColor="{StaticResource Primary}" />
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
+
         </CollectionView>
     </RefreshView>
 </ContentPage>

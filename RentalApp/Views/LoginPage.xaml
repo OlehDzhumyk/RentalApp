@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="RentalApp.Views.LoginPage"
-             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RentalApp.ViewModels"
+             x:Class="RentalApp.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
              Title="{Binding Title}"
              Shell.NavBarIsVisible="False">
+
+    <!--
+        Authentication Portal
+        Handles secure user login and navigation to registration/recovery flows
+    -->
 
     <ContentPage.BindingContext>
         <vm:LoginViewModel />
@@ -14,16 +20,24 @@
         <Grid Padding="30" RowSpacing="20" VerticalOptions="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <!-- Logo -->
                 <RowDefinition Height="Auto" />
+                <!-- Error -->
                 <RowDefinition Height="Auto" />
+                <!-- Email -->
                 <RowDefinition Height="Auto" />
+                <!-- Password -->
                 <RowDefinition Height="Auto" />
+                <!-- Options -->
                 <RowDefinition Height="Auto" />
+                <!-- Login Btn -->
                 <RowDefinition Height="Auto" />
+                <!-- Indicator -->
                 <RowDefinition Height="Auto" />
+                <!-- Footer -->
             </Grid.RowDefinitions>
 
-            <!-- App Logo/Title -->
+            <!-- Brand Identity -->
             <Label Grid.Row="0"
                    Text="RentalApp"
                    FontSize="32"
@@ -32,7 +46,7 @@
                    Margin="0,0,0,30"
                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
 
-            <!-- Error Message -->
+            <!-- Feedback Display (Replaced obsolete Frame with Border) -->
             <Border Grid.Row="1"
                     BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#1B0000}"
                     Stroke="{AppThemeBinding Light=#F44336, Dark=#EF5350}"
@@ -47,7 +61,7 @@
                        FontSize="14" />
             </Border>
 
-            <!-- Email Entry -->
+            <!-- Credential Inputs -->
             <Border Grid.Row="2"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -55,15 +69,13 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <Entry x:Name="EmailEntry"
-                       Text="{Binding Email}"
+                <Entry Text="{Binding Email}"
                        Placeholder="Email"
                        Keyboard="Email"
                        ReturnType="Next"
                        Margin="15,10" />
             </Border>
 
-            <!-- Password Entry -->
             <Border Grid.Row="3"
                     Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
                     StrokeThickness="1"
@@ -71,21 +83,22 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <Entry x:Name="PasswordEntry"
-                       Text="{Binding Password}"
+                <Entry Text="{Binding Password}"
                        Placeholder="Password"
                        IsPassword="True"
                        ReturnType="Done"
                        Margin="15,10" />
             </Border>
 
-            <!-- Remember Me -->
-            <StackLayout Grid.Row="4" Orientation="Horizontal" HorizontalOptions="Start">
+            <!-- Session Management -->
+            <StackLayout Grid.Row="4" 
+                         Orientation="Horizontal" 
+                         HorizontalOptions="Start">
                 <CheckBox IsChecked="{Binding RememberMe}" />
-                <Label Text="Remember me" VerticalOptions="Center" />
+                <Label Text="Remember me" 
+                       VerticalOptions="Center" />
             </StackLayout>
 
-            <!-- Login Button -->
             <Button Grid.Row="5"
                     Text="Login"
                     Command="{Binding LoginCommand}"
@@ -96,14 +109,15 @@
                     FontSize="16"
                     FontAttributes="Bold" />
 
-            <!-- Loading Indicator -->
             <ActivityIndicator Grid.Row="6"
-                              IsVisible="{Binding IsBusy}"
-                              IsRunning="{Binding IsBusy}"
-                              Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                               IsVisible="{Binding IsBusy}"
+                               IsRunning="{Binding IsBusy}"
+                               Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
 
-            <!-- Footer Links -->
-            <StackLayout Grid.Row="7" Spacing="10" Margin="0,20,0,0">
+            <!-- Secondary Navigation Actions -->
+            <StackLayout Grid.Row="7" 
+                         Spacing="10" 
+                         Margin="0,20,0,0">
                 <Button Text="Create Account"
                         Command="{Binding NavigateToRegisterCommand}"
                         BackgroundColor="Transparent"
@@ -112,7 +126,7 @@
                         BorderColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                         HeightRequest="45"
                         CornerRadius="8" />
-                
+
                 <Button Text="Forgot Password?"
                         Command="{Binding ForgotPasswordCommand}"
                         BackgroundColor="Transparent"

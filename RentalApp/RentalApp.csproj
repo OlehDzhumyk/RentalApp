@@ -1,13 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <!-- 
-          DEVELOPMENT OPTIMIZATION: 
-          If DevMode is true, only build for net10.0 to save time.
-          Otherwise, build for all target platforms.
+          Основа для всіх систем: чиста логіка та Android. 
+          Це те, що гарантовано працює на Linux раннері.
         -->
-        <TargetFrameworks Condition="'$(DevMode)' == 'true'">net10.0</TargetFrameworks>
-        <TargetFrameworks Condition="'$(DevMode)' != 'true'">net10.0;net10.0-android;net10.0-maccatalyst</TargetFrameworks>
-        <TargetFrameworks Condition="'$(DevMode)' != 'true' and $([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+        <TargetFrameworks>net10.0;net10.0-android</TargetFrameworks>
+
+        <!-- Додаємо MacCatalyst тільки якщо ми фізично на macOS -->
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">$(TargetFrameworks);net10.0-maccatalyst</TargetFrameworks>
+
+        <!-- Додаємо Windows тільки якщо ми фізично на Windows -->
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
         <OutputType>Exe</OutputType>
         <RootNamespace>RentalApp</RootNamespace>
@@ -26,12 +29,7 @@
         <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     </PropertyGroup>
 
-    <!-- Visual Reminder in Build Output so we don't forget it's in DevMode -->
-    <Target Name="DevModeWarning" BeforeTargets="Build" Condition="'$(DevMode)' == 'true'">
-        <Warning Text="BUILDING IN DEV MODE: Only net10.0 target is active. Do not use for deployment!" />
-    </Target>
-
-    <!-- Rest of the project configuration stays the same -->
+    <!-- Налаштування бібліотеки для юніт-тестів на net10.0 -->
     <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
         <OutputType>Library</OutputType>
     </PropertyGroup>
@@ -42,7 +40,6 @@
         <MauiImage Include="Resources\Images\*" />
         <MauiFont Include="Resources\Fonts\*" />
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
@@ -51,7 +48,6 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
         <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
-
         <ProjectReference Include="..\RentalApp.Database\RentalApp.Database.csproj" />
     </ItemGroup>
 </Project>

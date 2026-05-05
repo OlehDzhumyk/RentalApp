@@ -9,7 +9,8 @@
 
     <!--
         Authentication Portal
-        Handles secure user login and navigation to registration/recovery flows
+        Handles secure user login and navigation to registration/recovery flows.
+        Retains x:Name references for code-behind focus management.
     -->
 
     <ContentPage.BindingContext>
@@ -46,7 +47,7 @@
                    Margin="0,0,0,30"
                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
 
-            <!-- Feedback Display (Replaced obsolete Frame with Border) -->
+            <!-- Feedback Display -->
             <Border Grid.Row="1"
                     BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#1B0000}"
                     Stroke="{AppThemeBinding Light=#F44336, Dark=#EF5350}"
@@ -69,7 +70,8 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <Entry Text="{Binding Email}"
+                <Entry x:Name="EmailEntry"
+                       Text="{Binding Email}"
                        Placeholder="Email"
                        Keyboard="Email"
                        ReturnType="Next"
@@ -83,7 +85,8 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <Entry Text="{Binding Password}"
+                <Entry x:Name="PasswordEntry"
+                       Text="{Binding Password}"
                        Placeholder="Password"
                        IsPassword="True"
                        ReturnType="Done"

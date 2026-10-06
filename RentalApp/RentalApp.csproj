@@ -1,15 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <!-- 
-          Основа для всіх систем: чиста логіка та Android. 
-          Це те, що гарантовано працює на Linux раннері.
-        -->
+        <!-- Plain net10.0 (for unit tests) and Android build everywhere, including the Linux CI runner -->
         <TargetFrameworks>net10.0;net10.0-android</TargetFrameworks>
 
-        <!-- Додаємо MacCatalyst тільки якщо ми фізично на macOS -->
+        <!-- Mac Catalyst can only be built on macOS -->
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">$(TargetFrameworks);net10.0-maccatalyst</TargetFrameworks>
 
-        <!-- Додаємо Windows тільки якщо ми фізично на Windows -->
+        <!-- Windows can only be built on Windows -->
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
         <OutputType>Exe</OutputType>
@@ -29,7 +26,7 @@
         <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
     </PropertyGroup>
 
-    <!-- Налаштування бібліотеки для юніт-тестів на net10.0 -->
+    <!-- The net10.0 target is a class library that the test project references -->
     <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
         <OutputType>Library</OutputType>
     </PropertyGroup>
@@ -41,13 +38,13 @@
         <MauiFont Include="Resources\Fonts\*" />
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.7" />
-        <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
-        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.60" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.7" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
-        <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
+        <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.110" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+        <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.12" />
         <ProjectReference Include="..\RentalApp.Database\RentalApp.Database.csproj" />
     </ItemGroup>
 </Project>

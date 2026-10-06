@@ -219,13 +219,13 @@ public partial class UserDetailViewModel : BaseViewModel
     [RelayCommand]
     private async Task NavigateBackAsync()
     {
-        await _navigationService.NavigateToAsync("UserListPage");
+        await _navigationService.NavigateBackAsync();
     }
 
     [RelayCommand]
     private async Task NavigateToDashboardAsync()
     {
-        await _navigationService.NavigateToAsync("MainPage");
+        await _navigationService.NavigateToAsync("//MainPage");
     }
 
     #endregion
@@ -236,7 +236,7 @@ public partial class UserDetailViewModel : BaseViewModel
     {
         if (!_authService.HasRole(RoleConstants.Admin))
         {
-            await _navigationService.NavigateToAsync("MainPage");
+            await _navigationService.NavigateToAsync("//MainPage");
             return;
         }
 
@@ -322,7 +322,7 @@ public partial class UserDetailViewModel : BaseViewModel
 
     private async Task CreateUserInternalAsync()
     {
-        if (await _userRepository.ExistsAsync(Email.Trim()))
+        if (await _userRepository.ExistsAsync(Email.Trim().ToLowerInvariant()))
         {
             throw new InvalidOperationException("A user with this email already exists.");
         }
@@ -334,7 +334,7 @@ public partial class UserDetailViewModel : BaseViewModel
         {
             FirstName = FirstName.Trim(),
             LastName = LastName.Trim(),
-            Email = Email.Trim(),
+            Email = Email.Trim().ToLowerInvariant(),
             PasswordHash = hashedPassword,
             PasswordSalt = salt,
             CreatedAt = DateTime.UtcNow,

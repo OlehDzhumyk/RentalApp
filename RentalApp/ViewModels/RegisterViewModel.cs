@@ -65,7 +65,6 @@ public partial class RegisterViewModel : BaseViewModel
 
             if (result.IsSuccess)
             {
-                // Використовуємо абстракцію навігації для тестів
                 await _navigationService.ShowAlertAsync("Success", "Registration successful! Please login.", "OK");
                 await _navigationService.NavigateBackAsync();
             }

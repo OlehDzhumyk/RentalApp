@@ -1,10 +1,12 @@
 namespace RentalApp.Database.Models;
 
+/// <summary>
+/// Names of the roles seeded by the initial migration.
+/// </summary>
 public static class RoleConstants
 {
     public const string Admin = "Admin";
-    public const string OrdinaryUser = "OrdinaryUser";
-    public const string SpecialUser = "SpecialUser";
-    
-    public static readonly string[] AllRoles = { Admin, OrdinaryUser, SpecialUser };
+    public const string User = "User";
+
+    public static readonly string[] AllRoles = { Admin, User };
 }

@@ -37,6 +37,10 @@ public partial class ProfileViewModel : BaseViewModel
     [ObservableProperty]
     public partial string ConfirmNewPassword { get; set; } = string.Empty;
 
+    /// <summary>The current user's roles, ready for display.</summary>
+    [ObservableProperty]
+    public partial string RolesDisplay { get; set; } = string.Empty;
+
     /// <summary>Indicates whether the password change mode is active.</summary>
     [ObservableProperty]
     public partial bool IsChangingPassword { get; set; }
@@ -73,6 +77,9 @@ public partial class ProfileViewModel : BaseViewModel
         if (_authService != null)
         {
             CurrentUser = _authService.CurrentUser;
+            RolesDisplay = _authService.CurrentUserRoles.Count > 0
+                ? "Roles: " + string.Join(", ", _authService.CurrentUserRoles)
+                : string.Empty;
         }
     }
 
@@ -99,7 +106,6 @@ public partial class ProfileViewModel : BaseViewModel
             {
                 if (Shell.Current != null)
                 {
-                    // FIXED: Use DisplayAlertAsync instead of DisplayAlert
                     await Shell.Current.DisplayAlertAsync("Success", "Password changed successfully!", "OK");
                 }
                 ClearPasswordFields();

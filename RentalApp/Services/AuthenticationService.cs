@@ -34,7 +34,7 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(NormaliseEmail(email));
 
             if (user == null || !BCryptNet.Verify(password, user.PasswordHash))
             {
@@ -60,6 +60,7 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
+            email = NormaliseEmail(email);
             if (await _userRepository.ExistsAsync(email))
             {
                 return new AuthenticationResult(false, "User with this email already exists");
@@ -70,8 +71,8 @@ public class AuthenticationService : IAuthenticationService
 
             var user = new User
             {
-                FirstName = firstName,
-                LastName = lastName,
+                FirstName = firstName.Trim(),
+                LastName = lastName.Trim(),
                 Email = email,
                 PasswordHash = hashedPassword,
                 PasswordSalt = salt,
@@ -96,6 +97,8 @@ public class AuthenticationService : IAuthenticationService
             return new AuthenticationResult(false, $"Registration failed: {ex.Message}");
         }
     }
+
+    private static string NormaliseEmail(string email) => email.Trim().ToLowerInvariant();
 
     public Task LogoutAsync()
     {

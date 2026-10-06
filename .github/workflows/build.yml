@@ -1,9 +1,4 @@
-# @file build.yml
-# @brief Professional CI/CD pipeline for .NET 10 MAUI & PostGIS
-# @author RentalApp Development Team
-# @date 2026
-
-name: Build & Test Suite
+name: Build & Test
 
 on:
   push:
@@ -12,8 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  pipeline:
-    name: Continuous Integration
+  build-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -21,67 +15,53 @@ jobs:
       postgres:
         image: postgis/postgis:16-3.4
         env:
-          # Literals are required here as secrets are not accessible in services block
           POSTGRES_USER: app_user
           POSTGRES_PASSWORD: app_password
           POSTGRES_DB: appdb
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U app_user -d appdb" 
+          --health-cmd "pg_isready -U app_user -d appdb"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install MAUI Workloads
+      - name: Install MAUI Android workload
         run: dotnet workload install maui-android
 
-      - name: Prepare Configuration
-        run: |
-          mkdir -p RentalApp.Database
-          cat <<EOF > ./RentalApp.Database/appsettings.json
-          {
-            "ConnectionStrings": {
-              "DevelopmentConnection": "Host=localhost;Port=5432;Database=appdb;Username=${{ secrets.DB_USER }};Password=${{ secrets.DB_PASSWORD }};Include Error Detail=true"
-            }
-          }
-          EOF
+      - name: Restore
+        run: dotnet restore RentalApp.sln
 
-      - name: Restore Dependencies
-        run: dotnet restore ./RentalApp.sln
+      # Builds the plain net10.0 library and the Android app
+      - name: Build
+        run: dotnet build RentalApp.sln --configuration Release --no-restore
 
-      - name: Build Solution
-        run: |
-          dotnet build-server shutdown
-          dotnet build ./RentalApp.sln --configuration Release --no-restore --no-incremental
+      # Applies the real migrations to PostGIS (the integration tests use EnsureCreated instead)
+      - name: Apply migrations and seed demo data
+        run: dotnet run --project RentalApp.Migrations --configuration Release --no-build -- --seed
 
-      - name: Execute Tests
-        run: |
-          dotnet test ./RentalApp.Test/RentalApp.Test.csproj \
-            --configuration Release \
-            --no-build \
-            --framework net10.0 \
-            --results-directory ./TestResults \
-            --collect:"XPlat Code Coverage" \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+      - name: Test
+        run: >
+          dotnet test RentalApp.Test/RentalApp.Test.csproj
+          --configuration Release --no-build --framework net10.0
+          --results-directory ./TestResults --logger trx
+          --collect:"XPlat Code Coverage"
 
-      - name: Upload Coverage to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./TestResults/**/*.xml
+          files: ./TestResults/**/coverage.cobertura.xml
           fail_ci_if_error: false
 
-      - name: Publish Test Results
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:

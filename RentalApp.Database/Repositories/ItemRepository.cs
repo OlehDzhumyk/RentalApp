@@ -43,20 +43,24 @@ public class ItemRepository : IItemRepository
     }
 
     /// <summary>
-    /// Performs a spatial query using PostGIS ST_DWithin logic.
-    /// Finds items within a specified radius of a point.
+    /// Finds available items within a radius of a point, nearest first.
+    /// Location is a geography column, so PostGIS works in metres: IsWithinDistance becomes
+    /// ST_DWithin (which can use the GIST index) and Distance becomes ST_Distance.
     /// </summary>
-    public async Task<List<Item>> GetNearbyAsync(double lat, double lon, double radiusKm)
+    public async Task<List<NearbyItem>> GetNearbyAsync(double lat, double lon, double radiusKm)
     {
         var userPoint = _geometryFactory.CreatePoint(new Coordinate(lon, lat));
         var radiusMeters = radiusKm * 1000;
 
-        return await _context.Items
+        var results = await _context.Items
             .Include(i => i.Owner)
             .Where(i => i.IsAvailable && i.Location != null)
-            .Where(i => i.Location!.Distance(userPoint) <= radiusMeters)
-            .OrderBy(i => i.Location!.Distance(userPoint))
+            .Where(i => i.Location!.IsWithinDistance(userPoint, radiusMeters))
+            .Select(i => new { Item = i, DistanceMeters = i.Location!.Distance(userPoint) })
+            .OrderBy(r => r.DistanceMeters)
             .ToListAsync();
+
+        return results.Select(r => new NearbyItem(r.Item, r.DistanceMeters / 1000)).ToList();
     }
 
     public async Task<List<Item>> GetByOwnerIdAsync(int ownerId)

@@ -153,9 +153,10 @@
                                FontAttributes="Bold"
                                Margin="0,0,0,10" />
 
-                        <CollectionView ItemsSource="{Binding AvailableRoles}"
-                                      BackgroundColor="Transparent">
-                            <CollectionView.ItemTemplate>
+                        <!-- BindableLayout rather than CollectionView: a CollectionView nested in a
+                             ScrollView gets zero height on iOS and Mac, and there are only a few roles -->
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding AvailableRoles}">
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Padding="0,8">
                                         <Grid.ColumnDefinitions>
@@ -197,8 +198,8 @@
                                               IsVisible="{Binding IsAssigned}" />
                                     </Grid>
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
                     </StackLayout>
                 </Frame>
             </StackLayout>

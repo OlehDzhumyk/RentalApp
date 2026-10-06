@@ -29,22 +29,29 @@ public class AppDbContext : DbContext
     {
         if (optionsBuilder.IsConfigured) return;
 
-        // Loading appsettings.json from embedded resources for portability
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("RentalApp.Database.appsettings.json");
-
-        if (stream == null)
-            throw new InvalidOperationException("Embedded appsettings.json not found. Ensure the file is set as EmbeddedResource.");
-
-        var config = new ConfigurationBuilder().AddJsonStream(stream).Build();
-        var connectionString = config.GetConnectionString("DevelopmentConnection");
-
-        optionsBuilder.UseNpgsql(connectionString, options =>
+        optionsBuilder.UseNpgsql(GetConnectionString(), options =>
         {
             // Enable NetTopologySuite for spatial types (Point, Geometry, etc.)
             options.UseNetTopologySuite();
             options.MigrationsAssembly("RentalApp.Migrations");
         });
+    }
+
+    /// <summary>
+    /// Reads the connection string from the RENTALAPP_CONNECTION environment variable if set,
+    /// otherwise from the appsettings.json embedded in this assembly.
+    /// </summary>
+    public static string GetConnectionString()
+    {
+        var fromEnvironment = Environment.GetEnvironmentVariable("RENTALAPP_CONNECTION");
+        if (!string.IsNullOrWhiteSpace(fromEnvironment)) return fromEnvironment;
+
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("RentalApp.Database.appsettings.json")
+            ?? throw new InvalidOperationException("Embedded appsettings.json not found. Ensure the file is set as EmbeddedResource.");
+
+        var config = new ConfigurationBuilder().AddJsonStream(stream).Build();
+        return config.GetConnectionString("DevelopmentConnection")
+            ?? throw new InvalidOperationException("appsettings.json has no DevelopmentConnection connection string.");
     }
 
     public DbSet<Role> Roles => Set<Role>();
@@ -114,8 +121,8 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Role>().HasData(
-            new Role { Id = 1, Name = "Admin", IsDefault = false },
-            new Role { Id = 2, Name = "User", IsDefault = true }
+            new Role { Id = 1, Name = RoleConstants.Admin, IsDefault = false },
+            new Role { Id = 2, Name = RoleConstants.User, IsDefault = true }
         );
     }
 }

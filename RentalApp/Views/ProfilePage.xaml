@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RentalApp.ViewModels"
+             x:Class="RentalApp.Views.ProfilePage"
+             x:DataType="vm:ProfileViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- Account summary -->
+            <Border BackgroundColor="{StaticResource Primary}"
+                    Padding="20">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding CurrentUser.FullName}"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="White" />
+                    <Label Text="{Binding CurrentUser.Email}"
+                           FontSize="14"
+                           TextColor="White"
+                           Opacity="0.85" />
+                    <Label Text="{Binding RolesDisplay}"
+                           FontSize="12"
+                           TextColor="White"
+                           Opacity="0.85"
+                           Margin="0,8,0,0" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Error feedback -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#1B0000}"
+                    Stroke="{AppThemeBinding Light=#F44336, Dark=#EF5350}"
+                    StrokeThickness="1"
+                    Padding="15"
+                    IsVisible="{Binding HasError}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="{AppThemeBinding Light=#D32F2F, Dark=#EF5350}" />
+            </Border>
+
+            <!-- Password change -->
+            <Button Text="Change password"
+                    Command="{Binding TogglePasswordChangeModeCommand}"
+                    IsVisible="{Binding IsChangingPassword, Converter={StaticResource InvertedBoolConverter}}" />
+
+            <VerticalStackLayout Spacing="12" IsVisible="{Binding IsChangingPassword}">
+                <Label Text="Change password" FontSize="18" FontAttributes="Bold" />
+                <Entry Text="{Binding CurrentPassword}" Placeholder="Current password" IsPassword="True" />
+                <Entry Text="{Binding NewPassword}" Placeholder="New password (at least 6 characters)" IsPassword="True" />
+                <Entry Text="{Binding ConfirmNewPassword}" Placeholder="Confirm new password" IsPassword="True" />
+                <Button Text="Save new password" Command="{Binding ChangePasswordCommand}" />
+                <Button Text="Cancel"
+                        Command="{Binding TogglePasswordChangeModeCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+            </VerticalStackLayout>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

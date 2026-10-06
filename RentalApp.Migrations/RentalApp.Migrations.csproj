@@ -3,7 +3,7 @@
 	  <ProjectReference Include="..\RentalApp.Database\RentalApp.Database.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	    <PrivateAssets>all</PrivateAssets>
 	  </PackageReference>

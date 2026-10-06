@@ -19,7 +19,7 @@ public partial class CreateItemViewModel : BaseViewModel
     private readonly IItemRepository _itemRepository;
     private readonly IAuthenticationService _authService;
     private readonly INavigationService _navigationService;
-    private readonly ILocationService _locationService; // Додано
+    private readonly ILocationService _locationService;
 
     [ObservableProperty]
     public partial string ItemTitle { get; set; } = string.Empty;
@@ -40,7 +40,7 @@ public partial class CreateItemViewModel : BaseViewModel
         IItemRepository itemRepository,
         IAuthenticationService authService,
         INavigationService navigationService,
-        ILocationService locationService) // Додано
+        ILocationService locationService)
     {
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
@@ -89,7 +89,7 @@ public partial class CreateItemViewModel : BaseViewModel
                 OwnerId = currentUser.Id,
                 CreatedAt = DateTime.UtcNow,
                 IsAvailable = true,
-                Location = itemLocation // Тепер річ має координати!
+                Location = itemLocation
             };
 
             await _itemRepository.AddAsync(newItem);

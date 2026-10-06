@@ -22,7 +22,7 @@ public class CreateItemViewModelTests
     private readonly Mock<IItemRepository> _itemRepositoryMock;
     private readonly Mock<IAuthenticationService> _authServiceMock;
     private readonly Mock<INavigationService> _navigationServiceMock;
-    private readonly Mock<ILocationService> _locationServiceMock; // Додано мок
+    private readonly Mock<ILocationService> _locationServiceMock;
     private readonly CreateItemViewModel _viewModel;
 
     public CreateItemViewModelTests()
@@ -30,12 +30,11 @@ public class CreateItemViewModelTests
         _itemRepositoryMock = new Mock<IItemRepository>();
         _authServiceMock = new Mock<IAuthenticationService>();
         _navigationServiceMock = new Mock<INavigationService>();
-        _locationServiceMock = new Mock<ILocationService>(); // Ініціалізація
+        _locationServiceMock = new Mock<ILocationService>();
 
         // Mock current user to provide an OwnerId for the item
         _authServiceMock.Setup(a => a.CurrentUser).Returns(new User { Id = 1 });
 
-        // Тепер передаємо всі 4 аргументи
         _viewModel = new CreateItemViewModel(
             _itemRepositoryMock.Object,
             _authServiceMock.Object,
@@ -54,7 +53,7 @@ public class CreateItemViewModelTests
         _viewModel.Description = "Description";
         _viewModel.PricePerDay = 10.0m;
 
-        // Симулюємо, що GPS повернув координати Едінбурга
+        // GPS returns a point in Edinburgh
         _locationServiceMock.Setup(l => l.GetCurrentLocationAsync())
             .ReturnsAsync((55.9533, -3.1883));
 
@@ -65,7 +64,7 @@ public class CreateItemViewModelTests
         _itemRepositoryMock.Verify(r => r.AddAsync(It.Is<Item>(i =>
             i.Title == "Test Item" &&
             i.OwnerId == 1 &&
-            i.Location != null)), Times.Once); // Перевіряємо, що локація додана
+            i.Location != null)), Times.Once);
 
         _navigationServiceMock.Verify(n => n.NavigateBackAsync(), Times.Once);
     }

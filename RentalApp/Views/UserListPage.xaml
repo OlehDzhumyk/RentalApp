@@ -96,7 +96,7 @@
                                    Text="{Binding FullName}"
                                    FontSize="18"
                                    FontAttributes="Bold"
-                                   TextColor="Black" />
+                                   TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
 
                             <Label Grid.Row="1"
                                    Text="{Binding Email}"

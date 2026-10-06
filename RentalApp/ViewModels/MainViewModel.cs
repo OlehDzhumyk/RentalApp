@@ -56,12 +56,16 @@ public partial class MainViewModel : BaseViewModel
         LoadUserData();
     }
 
-    private void LoadUserData()
+    /// <summary>
+    /// Reloads the signed-in user. Called when the page appears, because Shell keeps the
+    /// dashboard page alive between logins.
+    /// </summary>
+    public void LoadUserData()
     {
         if (_authService == null) return;
 
         CurrentUser = _authService.CurrentUser;
-        IsAdmin = _authService.HasRole("Admin");
+        IsAdmin = _authService.HasRole(RoleConstants.Admin);
 
         if (CurrentUser != null)
         {
@@ -83,7 +87,7 @@ public partial class MainViewModel : BaseViewModel
         if (result)
         {
             await _authService.LogoutAsync();
-            await _navigationService.NavigateToAsync("///LoginPage");
+            await _navigationService.NavigateToAsync("//LoginPage");
         }
     }
 
@@ -105,13 +109,7 @@ public partial class MainViewModel : BaseViewModel
     [RelayCommand]
     private async Task NavigateToProfileAsync()
     {
-        await _navigationService.NavigateToAsync("TempPage");
-    }
-
-    [RelayCommand]
-    private async Task NavigateToSettingsAsync()
-    {
-        await _navigationService.NavigateToAsync("TempPage");
+        await _navigationService.NavigateToAsync(nameof(ProfilePage));
     }
 
     [RelayCommand]
@@ -126,7 +124,7 @@ public partial class MainViewModel : BaseViewModel
             return;
         }
 
-        await _navigationService.NavigateToAsync("UserListPage");
+        await _navigationService.NavigateToAsync(nameof(UserListPage));
     }
 
     [RelayCommand]
@@ -136,7 +134,7 @@ public partial class MainViewModel : BaseViewModel
         {
             IsBusy = true;
             LoadUserData();
-            await Task.Delay(1000);
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {

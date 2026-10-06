@@ -50,14 +50,14 @@
                                    FontSize="14"
                                    MaxLines="2"
                                    LineBreakMode="TailTruncation"
-                                   TextColor="{StaticResource Gray600}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
                         </VerticalStackLayout>
 
                         <Label Grid.Column="1"
                                Text="{Binding PricePerDay, StringFormat='£{0:F2}/day'}"
                                VerticalOptions="Center"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Primary}" />
+                               TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

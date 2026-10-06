@@ -15,9 +15,6 @@
         <ToolbarItem Text="Profile" 
                      Command="{Binding NavigateToProfileCommand}"
                      IconImageSource="user.png" />
-        <ToolbarItem Text="Settings" 
-                     Command="{Binding NavigateToSettingsCommand}"
-                     IconImageSource="settings.png" />
         <ToolbarItem Text="Logout" 
                      Command="{Binding LogoutCommand}"
                      IconImageSource="logout.png" />
@@ -40,7 +37,7 @@
 
                 <!-- User Welcome Header -->
                 <Border Grid.Row="0"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                        BackgroundColor="{StaticResource Primary}"
                         Padding="20"
                         HeightRequest="120">
                     <Border.StrokeShape>

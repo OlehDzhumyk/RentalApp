@@ -201,7 +201,7 @@ public partial class UserListViewModel : BaseViewModel
     [RelayCommand]
     private async Task NavigateToDashboardAsync()
     {
-        await _navigationService.NavigateToAsync("MainPage");
+        await _navigationService.NavigateToAsync("//MainPage");
     }
 
     private async Task NavigateToUserDetailAsync(UserListItem? user)

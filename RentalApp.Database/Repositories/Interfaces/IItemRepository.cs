@@ -20,5 +20,9 @@ public interface IItemRepository
     Task AddAsync(Item item);
     Task UpdateAsync(Item item);
     Task DeleteAsync(int id);
-    Task<List<Item>> GetNearbyAsync(double lat, double lon, double radiusKm);
+
+    /// <summary>
+    /// Returns available items within <paramref name="radiusKm"/> of a point, nearest first.
+    /// </summary>
+    Task<List<NearbyItem>> GetNearbyAsync(double lat, double lon, double radiusKm);
 }

@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RentalApp.ViewModels"
+             xmlns:models="clr-namespace:RentalApp.Database.Models;assembly=RentalApp.Database"
              x:Class="RentalApp.Views.NearbyItemsPage"
              x:DataType="vm:NearbyItemsViewModel"
              Title="{Binding Title}">
@@ -30,10 +31,10 @@
 
             <!-- Proximity-Based Item Template -->
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="vm:ItemDisplayWrapper">
+                <DataTemplate x:DataType="models:NearbyItem">
                     <Border Margin="10,5"
                             Padding="15"
-                            Stroke="{StaticResource Gray200}"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                             StrokeThickness="1">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="12" />
@@ -46,9 +47,9 @@
                                        FontSize="18"
                                        FontAttributes="Bold" />
 
-                                <!-- Distance feedback formatted in Navigation/Spatial logic -->
-                                <Label Text="{Binding FormattedDistance}"
-                                       TextColor="{StaticResource Primary}" />
+                                <!-- Distance comes from PostGIS (ST_Distance on geography) -->
+                                <Label Text="{Binding DistanceKm, StringFormat='{0:F1} km away'}"
+                                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                             </VerticalStackLayout>
 
                             <Label Grid.Column="1"

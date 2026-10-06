@@ -53,7 +53,6 @@ public partial class AppShellViewModel : BaseViewModel
     {
         LogoutCommand.NotifyCanExecuteChanged();
         NavigateToProfileCommand.NotifyCanExecuteChanged();
-        NavigateToSettingsCommand.NotifyCanExecuteChanged();
 
         Debug.WriteLine($"Authentication state changed: {isAuthenticated}");
     }
@@ -61,19 +60,13 @@ public partial class AppShellViewModel : BaseViewModel
     [RelayCommand]
     private async Task NavigateToProfileAsync()
     {
-        await _navigationService.NavigateToAsync("TempPage");
-    }
-
-    [RelayCommand]
-    private async Task NavigateToSettingsAsync()
-    {
-        await _navigationService.NavigateToAsync("TempPage");
+        await _navigationService.NavigateToAsync(nameof(Views.ProfilePage));
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteAuthenticatedAction))]
     private async Task LogoutAsync()
     {
         await _authService.LogoutAsync();
-        await _navigationService.NavigateToAsync("LoginPage");
+        await _navigationService.NavigateToAsync("//LoginPage");
     }
 }

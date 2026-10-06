@@ -58,7 +58,7 @@
                 </HorizontalStackLayout>
                 <Label Text="(Helps people nearby find your item faster)"
                        FontSize="11"
-                       TextColor="{StaticResource Gray500}"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                        Margin="45,-5,0,0" />
             </VerticalStackLayout>
 
@@ -70,7 +70,7 @@
             <Button Text="Cancel"
                     Command="{Binding CancelCommand}"
                     BackgroundColor="Transparent"
-                    TextColor="{StaticResource Gray600}" />
+                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
 
             <!-- Async Operation Feedback -->
             <ActivityIndicator IsRunning="{Binding IsBusy}"

@@ -25,9 +25,6 @@ public partial class LoginViewModel : BaseViewModel
     [ObservableProperty]
     public partial string Password { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    public partial bool RememberMe { get; set; }
-
     /// <summary>
     /// Initializes the ViewModel with required services via Dependency Injection.
     /// </summary>
@@ -61,6 +58,8 @@ public partial class LoginViewModel : BaseViewModel
 
             if (result.IsSuccess)
             {
+                ClearError();
+                Password = string.Empty;
                 await _navigationService.NavigateToAsync("//MainPage");
             }
             else
@@ -85,17 +84,5 @@ public partial class LoginViewModel : BaseViewModel
     private async Task NavigateToRegisterAsync()
     {
         await _navigationService.NavigateToAsync("RegisterPage");
-    }
-
-    /// <summary>
-    /// Initiates the password recovery workflow.
-    /// </summary>
-    [RelayCommand]
-    private async Task ForgotPasswordAsync()
-    {
-        if (Shell.Current != null)
-        {
-            await Shell.Current.DisplayAlertAsync("Info", "Password recovery is currently under maintenance.", "OK");
-        }
     }
 }

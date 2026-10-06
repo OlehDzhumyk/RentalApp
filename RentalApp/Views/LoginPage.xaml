@@ -81,11 +81,6 @@
                        Margin="15,10" />
             </Border>
 
-            <StackLayout Grid.Row="4" Orientation="Horizontal" HorizontalOptions="Start">
-                <CheckBox IsChecked="{Binding RememberMe}" />
-                <Label Text="Remember me" VerticalOptions="Center" />
-            </StackLayout>
-
             <Button Grid.Row="5"
                     Text="Login"
                     Command="{Binding LoginCommand}"
@@ -110,12 +105,6 @@
                         BorderColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                         HeightRequest="45"
                         CornerRadius="8" />
-
-                <Button Text="Forgot Password?"
-                        Command="{Binding ForgotPasswordCommand}"
-                        BackgroundColor="Transparent"
-                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                        FontSize="14" />
             </StackLayout>
         </Grid>
     </ScrollView>

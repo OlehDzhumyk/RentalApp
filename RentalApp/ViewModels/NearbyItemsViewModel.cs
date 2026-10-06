@@ -7,12 +7,10 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NetTopologySuite.Geometries;
 using RentalApp.Database.Models;
 using RentalApp.Database.Repositories;
 using RentalApp.Services;
 using System.Collections.ObjectModel;
-using Point = NetTopologySuite.Geometries.Point;
 
 namespace RentalApp.ViewModels;
 
@@ -22,7 +20,7 @@ public partial class NearbyItemsViewModel : BaseViewModel
     private readonly ILocationService _locationService;
 
     [ObservableProperty]
-    public partial ObservableCollection<ItemDisplayWrapper> NearbyItems { get; set; } = new();
+    public partial ObservableCollection<NearbyItem> NearbyItems { get; set; } = new();
 
     [ObservableProperty]
     public partial double SearchRadius { get; set; } = 5.0;
@@ -35,7 +33,7 @@ public partial class NearbyItemsViewModel : BaseViewModel
     }
 
     /// <summary>
-    /// Fetches items within the SearchRadius and calculates distance for each.
+    /// Fetches items within SearchRadius of the device, nearest first.
     /// </summary>
     [RelayCommand]
     private async Task LoadNearbyItemsAsync()
@@ -59,10 +57,7 @@ public partial class NearbyItemsViewModel : BaseViewModel
                 location.Value.Longitude,
                 SearchRadius);
 
-            var userPoint = new Point(location.Value.Longitude, location.Value.Latitude) { SRID = 4326 };
-
-            var wrappedItems = items.Select(item => new ItemDisplayWrapper(item, userPoint));
-            NearbyItems = new ObservableCollection<ItemDisplayWrapper>(wrappedItems);
+            NearbyItems = new ObservableCollection<NearbyItem>(items);
         }
         catch (Exception ex)
         {
@@ -71,27 +66,6 @@ public partial class NearbyItemsViewModel : BaseViewModel
         finally
         {
             IsBusy = false;
-        }
-    }
-}
-
-/// <summary>
-/// Domain-specific wrapper to calculate and format distance for the UI.
-/// </summary>
-public class ItemDisplayWrapper
-{
-    public Item Item { get; }
-    public double DistanceKm { get; }
-    public string FormattedDistance => $"{DistanceKm:F1} km away";
-
-    public ItemDisplayWrapper(Item item, Point userLocation)
-    {
-        Item = item;
-        if (item.Location != null)
-        {
-            // Simple approximation for distance in KM using NTS
-            // In a production app, we would use Haversine or let PostGIS return the distance
-            DistanceKm = item.Location.Distance(userLocation) * 111.1;
         }
     }
 }

@@ -28,7 +28,6 @@ public class NearbyItemsViewModelTests
         _itemRepositoryMock = new Mock<IItemRepository>();
         _locationServiceMock = new Mock<ILocationService>();
 
-        // RED STAGE: NearbyItemsViewModel does not exist yet.
         _viewModel = new NearbyItemsViewModel(_itemRepositoryMock.Object, _locationServiceMock.Object);
     }
 
@@ -42,38 +41,56 @@ public class NearbyItemsViewModelTests
             .ReturnsAsync((edLat, edLon));
 
         _itemRepositoryMock.Setup(r => r.GetNearbyAsync(edLat, edLon, It.IsAny<double>()))
-            .ReturnsAsync(new List<Item> { new Item { Id = 1, Title = "Nearby Drill" } });
+            .ReturnsAsync(new List<NearbyItem> { new(new Item { Id = 1, Title = "Nearby Drill" }, 0.4) });
 
         // Act
         await _viewModel.LoadNearbyItemsCommand.ExecuteAsync(null);
 
         // Assert
         _itemRepositoryMock.Verify(r => r.GetNearbyAsync(edLat, edLon, 5.0), Times.Once);
-        Assert.Single(_viewModel.NearbyItems);
+        var result = Assert.Single(_viewModel.NearbyItems);
+        Assert.Equal("Nearby Drill", result.Item.Title);
+        Assert.Equal(0.4, result.DistanceKm);
     }
 
     [Fact]
-    public async Task LoadNearbyItems_ShouldCalculateDistance_ForFoundItems()
+    public async Task LoadNearbyItems_ShouldUseSearchRadius()
     {
-        // Arrange: User is at Edinburgh Castle
-        double userLat = 55.9486;
-        double userLon = -3.1999;
-        _locationServiceMock.Setup(l => l.GetCurrentLocationAsync())
-            .ReturnsAsync((userLat, userLon));
+        _locationServiceMock.Setup(l => l.GetCurrentLocationAsync()).ReturnsAsync((55.9, -3.2));
+        _itemRepositoryMock.Setup(r => r.GetNearbyAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
+            .ReturnsAsync(new List<NearbyItem>());
+        _viewModel.SearchRadius = 12;
 
-        // Sample item at Waverley Station (~1km away)
-        var nearbyItem = new Item { Id = 10, Title = "Station Drill", Location = new NetTopologySuite.Geometries.Point(-3.1883, 55.9533) { SRID = 4326 } };
-        _itemRepositoryMock.Setup(r => r.GetNearbyAsync(userLat, userLon, It.IsAny<double>()))
-            .ReturnsAsync(new List<Item> { nearbyItem });
-
-        // Act
         await _viewModel.LoadNearbyItemsCommand.ExecuteAsync(null);
 
-        // Assert: Check if distance is exposed (we'll need a wrapper or a partial class logic)
-        var firstResult = _viewModel.NearbyItems.First();
-        Assert.NotNull(firstResult);
-        // We expect the ViewModel to handle the distance calculation logic
+        _itemRepositoryMock.Verify(r => r.GetNearbyAsync(55.9, -3.2, 12), Times.Once);
     }
 
+    [Fact]
+    public async Task LoadNearbyItems_ShouldShowError_WhenLocationIsUnavailable()
+    {
+        _locationServiceMock.Setup(l => l.GetCurrentLocationAsync())
+            .ReturnsAsync(((double, double)?)null);
 
+        await _viewModel.LoadNearbyItemsCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.HasError);
+        Assert.Contains("location", _viewModel.ErrorMessage);
+        _itemRepositoryMock.Verify(r => r.GetNearbyAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()), Times.Never);
+        Assert.False(_viewModel.IsBusy);
+    }
+
+    [Fact]
+    public async Task LoadNearbyItems_ShouldShowError_WhenRepositoryFails()
+    {
+        _locationServiceMock.Setup(l => l.GetCurrentLocationAsync()).ReturnsAsync((55.9, -3.2));
+        _itemRepositoryMock.Setup(r => r.GetNearbyAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
+            .ThrowsAsync(new InvalidOperationException("connection refused"));
+
+        await _viewModel.LoadNearbyItemsCommand.ExecuteAsync(null);
+
+        Assert.True(_viewModel.HasError);
+        Assert.Contains("connection refused", _viewModel.ErrorMessage);
+        Assert.False(_viewModel.IsBusy);
+    }
 }

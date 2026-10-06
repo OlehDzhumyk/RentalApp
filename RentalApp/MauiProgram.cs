@@ -29,19 +29,21 @@ public static class MauiProgram
 
         // --- Infrastructure & Hardware ---
         builder.Services.AddSingleton<IGeolocation>(Geolocation.Default);
-        builder.Services.AddDbContext<AppDbContext>();
+        // MAUI never creates DI scopes, so "scoped" would mean one DbContext for the whole app.
+        // Transient gives each view model its own short-lived context instead.
+        builder.Services.AddDbContext<AppDbContext>(ServiceLifetime.Transient);
 
         // --- Core Services ---
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<ILocationService, LocationService>();
-        builder.Services.AddScoped<IRentalService, RentalService>();
+        builder.Services.AddTransient<IRentalService, RentalService>();
 
         // --- Repositories ---
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddScoped<IItemRepository, ItemRepository>();
-        builder.Services.AddScoped<IRentalRepository, RentalRepository>();
-        builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+        builder.Services.AddTransient<IUserRepository, UserRepository>();
+        builder.Services.AddTransient<IItemRepository, ItemRepository>();
+        builder.Services.AddTransient<IRentalRepository, RentalRepository>();
+        builder.Services.AddTransient<IRoleRepository, RoleRepository>();
 
         // --- ViewModels ---
         builder.Services.AddTransient<MainViewModel>();
@@ -50,6 +52,9 @@ public static class MauiProgram
         builder.Services.AddTransient<ItemsListViewModel>();
         builder.Services.AddTransient<CreateItemViewModel>();
         builder.Services.AddTransient<NearbyItemsViewModel>();
+        builder.Services.AddTransient<ProfileViewModel>();
+        builder.Services.AddTransient<UserListViewModel>();
+        builder.Services.AddTransient<UserDetailViewModel>();
         builder.Services.AddSingleton<AppShellViewModel>();
 
         // --- Views ---
@@ -59,36 +64,15 @@ public static class MauiProgram
         builder.Services.AddTransient<ItemsListPage>();
         builder.Services.AddTransient<CreateItemPage>();
         builder.Services.AddTransient<NearbyItemsPage>();
+        builder.Services.AddTransient<ProfilePage>();
+        builder.Services.AddTransient<UserListPage>();
+        builder.Services.AddTransient<UserDetailPage>();
         builder.Services.AddSingleton<AppShell>();
 
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
 
-        var app = builder.Build();
-
-#if DEBUG
-        SeedDatabase(app);
-#endif
-
-        return app;
-    }
-
-    private static void SeedDatabase(MauiApp app)
-    {
-        // Execute seeding without blocking the main thread
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                using var scope = app.Services.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                await DbInitializer.SeedAsync(context);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Database seeding failed: {ex.Message}");
-            }
-        });
+        return builder.Build();
     }
 }
